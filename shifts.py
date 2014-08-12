@@ -179,21 +179,21 @@ def run_tweakshifts(asn_direct, verbose=False, clean=True):
   iraf.unlearn('tweakshifts')
 
   status = iraf.tweakshifts(input=asn_direct, shiftfile='',
-     reference=root+'_tweak.fits',
-     output = root+'_shifts.txt', findmode = 'catalog',
-     gencatalog = 'daofind', sextractpars = '', 
-     undistort = yes, computesig = yes, idckey = 'idctab',
-     clean = clean, verbose = no, catfile = '', xcol = 1, ycol = 2,
-     fluxcol = 3, fluxmax = INDEF, fluxmin = INDEF, fluxunits = 'counts',
-     nbright = INDEF, refcat = '', refxcol = 1, refycol = 2, rfluxcol = 3,
-     rfluxmax = INDEF, rfluxmin = INDEF, rfluxunits = 'counts',
-     refnbright = INDEF, minobj = 15, nmatch = 30, matching = 'tolerance',
-     xyxin = INDEF, xyyin = INDEF, tolerance = 4.0, fwhmpsf = 1.5,
-     sigma = 0.0, datamin = INDEF, datamax = INDEF, threshold = 4.0,
-     nsigma = 1.5, fitgeometry = 'shift', function = 'polynomial',
-     maxiter = 3, reject = 3.0, crossref = '', margin = 50, tapersz = 50,
-     pad = no, fwhm = 7.0, ellip = 0.05, pa = 45.0, fitbox = 7,
-     Stdout=1)
+                            reference=root+'_tweak.fits',
+                            output = root+'_shifts.txt', findmode = 'catalog',
+                            gencatalog = 'daofind', sextractpars = '', 
+                            undistort = yes, computesig = yes, idckey = 'idctab',
+                            clean = clean, verbose = no, catfile = '', xcol = 1, ycol = 2,
+                            fluxcol = 3, fluxmax = INDEF, fluxmin = INDEF, fluxunits = 'counts',
+                            nbright = INDEF, refcat = '', refxcol = 1, refycol = 2, rfluxcol = 3,
+                            rfluxmax = INDEF, rfluxmin = INDEF, rfluxunits = 'counts',
+                            refnbright = INDEF, minobj = 15, nmatch = 30, matching = 'tolerance',
+                            xyxin = INDEF, xyyin = INDEF, tolerance = 4.0, fwhmpsf = 1.5,
+                            sigma = 0.0, datamin = INDEF, datamax = INDEF, threshold = 4.0,
+                            nsigma = 1.5, fitgeometry = 'shift', function = 'polynomial',
+                            maxiter = 3, reject = 3.0, crossref = '', margin = 50, tapersz = 50,
+                            pad = no, fwhm = 7.0, ellip = 0.05, pa = 45.0, fitbox = 7,
+                            Stdout=1)
 
   if verbose:
       for line in status:

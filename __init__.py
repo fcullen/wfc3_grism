@@ -85,7 +85,7 @@ def defaultOptions():
     options['ROOT_DIR'] = '/disk1/fc/FIGS'
 
     # the name of the wfc3 grism grating being used:
-    options['GRATING'] = 'G102'
+    options['GRISM_NAME'] = 'G102'
 
     # an image used to align the raw 3dhst data:
     options['ALIGN_IMAGE'] = None
