@@ -4,7 +4,7 @@ A pipeline for the reduction fo the WFC3 3D-HST grism data
 Based on: https://threedhst.googlecode.com/svn/threedhst/
 """
 
-from pyutils import TerminalController
+import terminal_controller
 import utils
 import shifts
 import astrodrizzle
