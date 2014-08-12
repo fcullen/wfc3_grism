@@ -10,35 +10,33 @@ def copy_over_fresh_flt_files(asn_filename, from_path='../RAW'):
 	"""
 
 	# make an ASN object from the asn file
-	ASN  = figs.utils.ASNFile(file=asn_filename)
+	ASN  = figs.utils.ASNFile(file='%s/%s' %(from_path, asn_filename))
 
 	# extract the list of exposrues and loop through them:
 	explist = []
 	explist.extend(ASN.exposures)
-
-	print explist
 
 	for exp in explist:
 
 		print exp
 
 		# first find the file and open it as a pyfits object
-		fits_file = figs.utils.find_fits_gz(from_path+'/'+exp+'_flt.fits')
+		fits_file = figs.utils.find_fits_gz('%s/%s_flt.fits' %(from_path, exp))
 		fi = pyfits.open(fits_file)
 
 		# remove the current copy if one alrady exists:
 		try:
-			os.remove('./'+exp+'_flt.fits')
+			os.remove('./%s_flt.fits' %(exp))
 		except:
 			pass
 
 		# write the fits file to the current ('/DATA') directory
-		fi.writeto('./'+exp+'_flt.fits', clobber=True)
+		fi.writeto('./%s_flt.fits' %(exp), clobber=True)
 
 		# now see that the flat-flied applied to image is the best available and apply
 		# better flat if one is avaiable, can comment this out if just want to stick
 		# with the original flat field.
-		apply_best_flat(exp+'_flt.fits', verbose=True)
+		apply_best_flat('%s_flt.fits' %(exp), verbose=True)
 
 def find_best_flat(flt_fits, verbose=True):
     """
@@ -52,7 +50,6 @@ def find_best_flat(flt_fits, verbose=True):
     
     IREF = os.environ["iref"]
 
-    
     the_filter = pyfits.getheader(flt_fits,0).get('FILTER')
     
     pfls = glob.glob(IREF+'*pfl.fits')
@@ -139,8 +136,7 @@ def align_raw_flt_to_reference(raw_flt, reference_image):
 				   output=root_name+'_align.fits', image_extension=1,
 				   ref_extension=0)
 
-def swarp_to_image(input_image=None, ref_image=None,output=None,
-                   image_extension=0, ref_extension=0):
+def swarp_to_image(input_image=None, ref_image=None,output=None, image_extension=0, ref_extension=0):
     """
 	swarp_to_image(input=None,matchImage=None,output=None,
                  match_extension=0)

@@ -151,88 +151,89 @@ class ShiftFile():
       self.nrows += 1
 
 def run_tweakshifts(asn_direct, verbose=False, clean=True):
-  """
-  run_tweakshifts(asn_direct)
+    """
+    run_tweakshifts(asn_direct)
 
-  asn_direct - filename of ASN table of direct images [...]_asn.fits
+    asn_direct - filename of ASN table of direct images [...]_asn.fits
 
-  This routine only uses dither.tweakshifts to compute the relative shifts of 
-  the direct images
-  """
+    This routine only uses dither.tweakshifts to compute the relative shifts of 
+    the direct images
+    """
 
-  root = asn_direct.split('_asn.fits')[0]
+    root = asn_direct.split('_asn.fits')[0]
 
-  try:
-      os.remove(root+'_tweak.fits')
-  except:
-      pass        
+    try:
+        os.remove(root+'_tweak.fits')
+    except:
+        pass        
 
-  iraf.flpr()
-  iraf.flpr()
-  iraf.flpr()
+    iraf.flpr()
+    iraf.flpr()
+    iraf.flpr()
 
-  if clean:
-      clean=iraf.yes
-  else:
-      clean=iraf.no
+    if clean:
+        clean=iraf.yes
+    else:
+        clean=iraf.no
 
-  iraf.unlearn('tweakshifts')
+    iraf.unlearn('tweakshifts')
 
-  status = iraf.tweakshifts(input=asn_direct, shiftfile='',
-                            reference=root+'_tweak.fits',
-                            output = root+'_shifts.txt', findmode = 'catalog',
-                            gencatalog = 'daofind', sextractpars = '', 
-                            undistort = yes, computesig = yes, idckey = 'idctab',
-                            clean = clean, verbose = no, catfile = '', xcol = 1, ycol = 2,
-                            fluxcol = 3, fluxmax = INDEF, fluxmin = INDEF, fluxunits = 'counts',
-                            nbright = INDEF, refcat = '', refxcol = 1, refycol = 2, rfluxcol = 3,
-                            rfluxmax = INDEF, rfluxmin = INDEF, rfluxunits = 'counts',
-                            refnbright = INDEF, minobj = 15, nmatch = 30, matching = 'tolerance',
-                            xyxin = INDEF, xyyin = INDEF, tolerance = 4.0, fwhmpsf = 1.5,
-                            sigma = 0.0, datamin = INDEF, datamax = INDEF, threshold = 4.0,
-                            nsigma = 1.5, fitgeometry = 'shift', function = 'polynomial',
-                            maxiter = 3, reject = 3.0, crossref = '', margin = 50, tapersz = 50,
-                            pad = no, fwhm = 7.0, ellip = 0.05, pa = 45.0, fitbox = 7,
-                            Stdout=1)
+    status = iraf.tweakshifts(input=asn_direct, shiftfile='',
+                              reference=root+'_tweak.fits',
+                              output = root+'_shifts.txt', findmode = 'catalog',
+                              gencatalog = 'daofind', sextractpars = '', 
+                              undistort = yes, computesig = yes, idckey = 'idctab',
+                              clean = clean, verbose = no, catfile = '', xcol = 1, ycol = 2,
+                              fluxcol = 3, fluxmax = INDEF, fluxmin = INDEF, fluxunits = 'counts',
+                              nbright = INDEF, refcat = '', refxcol = 1, refycol = 2, rfluxcol = 3,
+                              rfluxmax = INDEF, rfluxmin = INDEF, rfluxunits = 'counts',
+                              refnbright = INDEF, minobj = 15, nmatch = 30, matching = 'tolerance',
+                              xyxin = INDEF, xyyin = INDEF, tolerance = 4.0, fwhmpsf = 1.5,
+                              sigma = 0.0, datamin = INDEF, datamax = INDEF, threshold = 4.0,
+                              nsigma = 1.5, fitgeometry = 'shift', function = 'polynomial',
+                              maxiter = 3, reject = 3.0, crossref = '', margin = 50, tapersz = 50,
+                              pad = no, fwhm = 7.0, ellip = 0.05, pa = 45.0, fitbox = 7,
+                              Stdout=1)
 
-  if verbose:
-      for line in status:
-          print line
+    if verbose:
+        for line in status:
+            print line
 
-  return status
+    return status
 
 def checkShiftfile(asn_direct):
-  """
-  checkShiftfile(asn_direct)
+    """
+    checkShiftfile(asn_direct)
   
-  Make sure that there is a line in the shiftfile for each exposure 
-  in the ASN table.  Also check that no scales are zero.
-  """
-  from figs.utils import ASNFile
-  asn = ASNFile(asn_direct)
+    Make sure that there is a line in the shiftfile for each exposure 
+    in the ASN table.  Also check that no scales are zero.
+    """
+
+    asn = figs.utils.ASNFile(asn_direct)
   
-  sf_file = asn_direct.split('_asn.fits')[0]+'_shifts.txt'
-  sf = ShiftFile(sf_file)
-  flag=False
-  for exp in asn.exposures:
-      if exp+'_flt.fits' not in sf.images:
-          flag=True
-          print 'Exposure, %s, not in %s' %(exp,sf_file)
-          #print sf.nrows
-          sf.append(exp+'_flt.fits')
-          #print sf.nrows
+    sf_file = asn_direct.split('_asn.fits')[0]+'_shifts.txt'
+    sf = ShiftFile(sf_file)
+    flag=False
+
+    for exp in asn.exposures:
+        if exp+'_flt.fits' not in sf.images:
+            flag=True
+            print 'Exposure, %s, not in %s' %(exp,sf_file)
+            #print sf.nrows
+            sf.append(exp+'_flt.fits')
+            #print sf.nrows
   
-  #### Check if scales are zero in the shiftfile
-  if 0.0 in sf.scale:
-      flag = True
-      print 'Found scale=0 in the shiftfile, setting to default no shift/rotation\n'
-      for i in range(len(sf.scale)):
-          sf.xshift[i], sf.yshift[i], sf.rotate[i], sf.scale[i] = 0.0, 0.0, 0.0, 1.0
+    #### Check if scales are zero in the shiftfile
+    if 0.0 in sf.scale:
+        flag = True
+        print 'Found scale=0 in the shiftfile, setting to default no shift/rotation\n'
+        for i in range(len(sf.scale)):
+            sf.xshift[i], sf.yshift[i], sf.rotate[i], sf.scale[i] = 0.0, 0.0, 0.0, 1.0
       
-  if flag:
-      sf.write(sf_file)
-  else:       
-      figs.showMessage('Shiftfile, %s, looks OK' %sf_file)
+    if flag:
+        sf.write(sf_file)
+    else:       
+        figs.showMessage('Shiftfile, %s, looks OK' %sf_file)
 
 def refine_shifts(ROOT_DIRECT='f160w',ALIGN_IMAGE='../../ACS/h_sz*drz_img.fits',fitgeometry='shift', clean=True,ALIGN_EXTENSION=0):
     """
