@@ -904,8 +904,7 @@ class SWarp(object):
         self._optinfo = optinfo
         self._defaultopts = opts
         self._optorder = optorder #TODO:OrderedDict for 2.7
-    
-    
+        
     def _aXeDefaults(self):
         """
         _aXeDefaults

@@ -84,8 +84,8 @@ def defaultOptions():
     # the root directory for a 3D-HST reduction:
     options['ROOT_DIR'] = '/Users/fcullen/PhD/3dhst/misc/other/pipeline_testing/uds28'
 
-    # the name of the wfc3 grism being used:
-    options['GRISM_NAME'] = 'G141'
+    # the name of the wfc3 grism grating being used:
+    options['GRATING'] = 'G141'
 
     # an image used to align the raw 3dhst data:
     options['ALIGN_IMAGE'] = '/Users/fcullen/PhD/3dhst/misc/other/pipeline_testing/uds_mosaic/hlsp_candels_hst_wfc3_uds-tot_f160w_v1.0_drz.fits'

@@ -86,6 +86,9 @@ def reduction_script(asn_grism=None, asn_direct=None):
 	#### check how long the aXe process is taking:
 	start_time = time.time()
 
+	### set up the aXe environment:
+	set_aXe_environment(grating=figs.options['GRATING'])
+
 	#### check that we're in the home directory of a 3D-HST field
 	check_3dhst_environment(makeDirs=True)
 
@@ -106,7 +109,7 @@ def reduction_script(asn_grism=None, asn_direct=None):
 	asn = figs.utils.ASNFile(asn_direct_file)
 	flt = '%s_flt.fits' %(asn.exposures[0])
 	figs.process_direct_images.align_raw_flt_to_reference(raw_flt=flt,
-															   reference_image=figs.options['ALIGN_IMAGE'])
+														  reference_image=figs.options['ALIGN_IMAGE'])
 
 
 
