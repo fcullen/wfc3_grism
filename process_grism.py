@@ -107,8 +107,7 @@ def check_flt_files_in_raw():
 		for _file in raw_files:
 			shutil.move(_file, "./RAW")
 
-
-def reduction_script(asn_grism=None, asn_direct=None):
+def reduction_script(asn_grism=None, asn_direct=None, test_run=False):
 	"""
 	process_grism.reduction_script(asn_grism="ibhm39030_asn.fits", 
 								   asn_direct="ibhm39040_asn.fits")
@@ -124,7 +123,7 @@ def reduction_script(asn_grism=None, asn_direct=None):
 	    figs.showMessage("No ASN driect file supplied", warn=True)
 	    return False
 
-	figs.showMessage('PREPARING DIRECTORS AND FILES FOR REDUCTION')
+	figs.showMessage('PREPARING ENVIRONMENT, DIRECTORS AND FILES FOR REDUCTION')
 
 	### make sure we're in the root directory of the reduction:
 	os.chdir(figs.options['ROOT_DIR'])
@@ -144,6 +143,7 @@ def reduction_script(asn_grism=None, asn_direct=None):
 	#### change to the data directory:
 	os.chdir('./DATA')
 
+	print "\n Done!"
 	figs.showMessage('STAGE I: DIRECT IMAGES')
 
 	#### copy over the ./RAW files into the DATA directory:
@@ -155,11 +155,24 @@ def reduction_script(asn_grism=None, asn_direct=None):
 	asn_grism_file = figs.utils.make_targname_asn(asn_grism)
 
 	#### first get the shifts between the individual direct exposures:
+	print "\n Done!"
 	figs.showMessage('RUNNING TWEAKSHIFTS ON DIRECT IMAGES')
 	figs.shifts.run_tweakshifts(asn_direct_file)
 	figs.shifts.checkShiftfile(asn_direct_file)
+	figs.shifts.default_rotation(asn_direct_file)
 
+	#### immediate future steps: 
+	#### -- combine with astrodrizzle.
+	#### -- align combined image to reference image with tweakreg.
+	#### -- blot back to initial images.
+	#### -- do background subtraction on the raw direct images.
+	#### -- recombine to get final F140W direct image for pointing.
 
+	### change back to root directory and cleanup if
+	### only doing a test
+	os.chdir(figs.options['ROOT_DIR'])
+	if test_run == True:
+		cleanup_reduction_directories()
 
 
 	

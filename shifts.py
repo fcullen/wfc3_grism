@@ -233,7 +233,7 @@ def checkShiftfile(asn_direct):
     if flag:
         sf.write(sf_file)
     else:       
-        figs.showMessage('Shiftfile, %s, looks OK' %sf_file)
+        print 'Shiftfile, %s, looks OK' %sf_file
 
 def refine_shifts(ROOT_DIRECT='f160w',ALIGN_IMAGE='../../ACS/h_sz*drz_img.fits',fitgeometry='shift', clean=True,ALIGN_EXTENSION=0):
     """
@@ -474,8 +474,10 @@ def align_to_reference(ROOT_DIRECT, ALIGN_IMAGE, fitgeometry="shift", clean=True
 
 def default_rotation(asn_direct, path_to_flt='./'):
     """
-    Force rotation to be 0.09 degrees to account for shift in the current 
-    IDCTAB file (uab1537ci_idc.fits).
+    Force rotation to be 0.09 degrees to account for shift in the  
+    IDCTAB uab1537ci_idc.fits.
+
+    Only applies roation is necessary.
     
     http://www.stsci.edu/hst/wfc3/documents/newsletters/STAN_04_05_2011#section2
     
@@ -484,9 +486,12 @@ def default_rotation(asn_direct, path_to_flt='./'):
     sf = ShiftFile(sf_file)
     
     im = pyfits.open(figs.utils.find_fits_gz(sf.images[0]))
-    if im[0].header['IDCTAB'].startswith('iref$uab1537'):    
+    if im[0].header['IDCTAB'].startswith('iref$uab1537'):
+        print "Applying default rotation to image"    
         for i in range(sf.nrows):
             sf.rotate[i] = 0.09
         sf.write(sf_file)
+    else:
+      pass
 
 

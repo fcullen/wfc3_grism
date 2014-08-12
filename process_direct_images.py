@@ -18,8 +18,6 @@ def copy_over_fresh_flt_files(asn_filename, from_path='../RAW'):
 
 	for exp in explist:
 
-		print exp
-
 		# first find the file and open it as a pyfits object
 		fits_file = figs.utils.find_fits_gz('%s/%s_flt.fits' %(from_path, exp))
 		fi = pyfits.open(fits_file)
