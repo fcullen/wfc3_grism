@@ -37,7 +37,7 @@ def showMessage(msg, warn=False):
     calling_function_name = sys._getframe(1).f_code.co_name    
     module_name =  os.path.basename(inspect.stack()[1][1]).split('.py')[0]
     
-    term = TerminalController.TerminalController()
+    term = terminal_controller.TerminalController()
     
     char = '='
     substr = 'FIGS.'+module_name+'.'+calling_function_name
