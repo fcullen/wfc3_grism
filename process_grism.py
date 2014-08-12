@@ -1,10 +1,22 @@
+### pipeline import:
 import figs
 
+### native imports:
 import os
-import pyfits
+import shutil
+import time
+import glob
+
+### pyraf/iraf imports:
 import pyraf
 from pyraf import iraf
 from iraf import stsdas, dither, slitless, axe
+
+### non-native python imports:
+import numpy as np
+
+### aXe specific imports:
+import aXe2html.sexcat.sextractcat
 
 def set_aXe_environment(grating='G141'):
     """
@@ -69,12 +81,6 @@ def reduction_script(asn_grism=None, asn_direct=None):
 	Pipeline to process a set of grism/direct exposures.
 	"""
 
-	import shutil
-	import glob
-	import numpy as np
-	import aXe2html.sexcat.sextractcat
-	import time
-
 	#### first exit if no input files are supplied:
 	if not asn_grism:
 	    figs.showMessage("No ASN grism file supplied",warn=True)
@@ -83,7 +89,7 @@ def reduction_script(asn_grism=None, asn_direct=None):
 	    figs.showMessage("No ASN driect file supplied", warn=True)
 	    return False
 
-	#### check how long the aXe process is taking:
+	#### timer to check how long the aXe process is taking:
 	start_time = time.time()
 
 	### set up the aXe environment:
@@ -105,11 +111,9 @@ def reduction_script(asn_grism=None, asn_direct=None):
 	figs.process_direct_images.copy_over_fresh_flt_files(asn_filename=asn_direct_file,
 													     from_path='%s/RAW' %(figs.options['ROOT_DIR']))
 
-	#### now align the direct images to a referecnce file
+	#### first get the shifts between the individual direct exposures:
 	asn = figs.utils.ASNFile(asn_direct_file)
-	flt = '%s_flt.fits' %(asn.exposures[0])
-	figs.process_direct_images.align_raw_flt_to_reference(raw_flt=flt,
-														  reference_image=figs.options['ALIGN_IMAGE'])
+	figs.shifts.run_tweakshifts(asn_direct_file)
 
 
 

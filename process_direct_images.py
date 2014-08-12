@@ -136,7 +136,7 @@ def align_raw_flt_to_reference(raw_flt, reference_image):
 
 	swarp_to_image(input_image=raw_flt,
 				   ref_image=reference_image,
-				   output=root_name+'_align.fits', image_extension = 1,
+				   output=root_name+'_align.fits', image_extension=1,
 				   ref_extension=0)
 
 def swarp_to_image(input_image=None, ref_image=None,output=None,
