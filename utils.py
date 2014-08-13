@@ -230,3 +230,28 @@ def make_targname_asn(asn_file, newfile=True, use_filtname=True, path_to_flt='..
     if newfile:
         asn.write(product+'_asn.fits', clobber=True)
     return product+'_asn.fits'
+
+def get_package_data(dataname):
+    """
+    (taken from astropysics.io)
+    Use this function to load data files distributed with astropysics in the 
+    astropysics/data directory
+    
+    `dataname` is the file name of a file in the *threedhst/data* directory, and
+    a string with the contents of the file will be returned
+    """
+    try:
+        ### Find the data directory in the root
+        ### directory of the threedhst package
+        from . import __name__ as rootname
+        from . import __file__ as rootfile
+        from pkgutil import get_loader
+        from os.path import dirname
+        path = dirname(rootfile)+'/data/'+dataname
+        return get_loader(rootname).get_data(path)
+    except:
+        ### Hardwired  in case relative import doesn't work
+        fp = open('/research/HST/GRISM/3DHST/progs/threedhst/data/'+dataname)
+        output = fp.read()
+        fp.close()
+        return output
