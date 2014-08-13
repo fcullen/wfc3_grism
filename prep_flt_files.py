@@ -230,12 +230,6 @@ class fit_2D_background():
         self.MODEL = IMGout
         fi.close()
 
-
-
-
-
-
-
 def find_best_flat(flt_fits, verbose=True):
     """
     Find the most recent PFL file in $IREF for the filter used for the 

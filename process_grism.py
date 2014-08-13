@@ -157,7 +157,7 @@ def reduction_script(asn_grism=None, asn_direct=None, test_run=False):
 	#### first get the shifts between the individual direct exposures:
 	print "\n Done!"
 	figs.showMessage('RUNNING TWEAKSHIFTS ON DIRECT IMAGES')
-	figs.shifts.run_tweakshifts(asn_direct_file)
+	figs.shifts.run_tweakshifts(asn_direct_file, verbose=True)
 	figs.shifts.checkShiftfile(asn_direct_file)
 	figs.shifts.default_rotation(asn_direct_file)
 

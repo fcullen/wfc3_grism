@@ -183,7 +183,7 @@ def run_tweakshifts(asn_direct, verbose=False, clean=True):
                               output = root+'_shifts.txt', findmode = 'catalog',
                               gencatalog = 'daofind', sextractpars = '', 
                               undistort = yes, computesig = yes, idckey = 'idctab',
-                              clean = clean, verbose = no, catfile = '', xcol = 1, ycol = 2,
+                              clean = clean, verbose = yes, catfile = '', xcol = 1, ycol = 2,
                               fluxcol = 3, fluxmax = INDEF, fluxmin = INDEF, fluxunits = 'counts',
                               nbright = INDEF, refcat = '', refxcol = 1, refycol = 2, rfluxcol = 3,
                               rfluxmax = INDEF, rfluxmin = INDEF, rfluxunits = 'counts',
