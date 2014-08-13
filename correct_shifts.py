@@ -19,7 +19,7 @@ def run_tweakreg(asn_direct):
 					  outwcs='%s_wcs.fits' %(root), minobj=15, 
 					  searchrad=1.0, searchunits='arcseconds', use2dhist=False,
 					  see2dplot=False, separation=0.5, fitgeometry='shift', residplot='No plot',
-					  ncip=3, sigma=3.0)
+					  nclip=3, sigma=3.0)
 
 
 
