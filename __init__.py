@@ -7,6 +7,7 @@ Based on: https://threedhst.googlecode.com/svn/threedhst/
 import terminal_controller
 import utils
 import shifts
+import correct_shifts
 import astrodrizzle
 import process_grism
 import regions
