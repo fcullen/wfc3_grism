@@ -89,7 +89,7 @@ def defaultOptions():
     options['GRISM_NAME'] = 'G141'
 
     # an image used to align the raw 3dhst data:
-    options['ALIGN_IMAGE'] = None
+    options['ALIGN_IMAGE'] = '/disk1/fc/FIGS/tests/uds_ref_image/hlsp_candels_hst_wfc3_uds-tot_f125w_v1.0_drz.fits'
 
     # configuration options
     options['CONFIG_FILE'] = 'WFC3.IR.G141.V2.0.conf'

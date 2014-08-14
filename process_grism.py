@@ -150,14 +150,26 @@ def reduction_script(asn_grism=None, asn_direct=None, test_run=False):
 	figs.process_direct_images.copy_over_fresh_flt_files(asn_filename=asn_direct,
 													     from_path='../RAW')
 
-	#### adjust the target names for the grism and diect files
+	#### adjust the target names for the grism and direct files
 	asn_direct_file = figs.utils.make_targname_asn(asn_direct)
 	asn_grism_file = figs.utils.make_targname_asn(asn_grism)
 
 	#### first get the shifts between the individual direct exposures:
 	print "\n Done!"
 	figs.showMessage('RUNNING TWEAKREG ON DIRECT IMAGES')
-	figs.correct_shifts.run_tweakreg(asn_direct_file, verbose=True)
+	figs.correct_shifts.run_tweakreg_on_direct_exposures(asn_direct_file, verbose=True)
+
+	#### drizzle them together:
+	print "\n Done!"
+	figs.showMessage('RUNNING ASTRODRIZZLE ON DIRECT IMAGES')
+	figs.astrodrizzle.direct_astrodrizzle_run(asn_direct_file)
+
+	#### align dirzzled image to reference CANDELS mosaic:
+	print "\n Done!"
+	figs.showMessage('RUNNING TWEAKREG TO ALIGN DIRECT IMAGE TO CANDELS')
+	figs.correct_shifts.run_tweakreg_to_align_to_reference(asn_direct_file,
+														   reference_drz=figs.options['ALIGN_IMAGE'],
+														   verbose=True)
 
 	#figs.shifts.run_tweakshifts(asn_direct_file, verbose=True)
 	#figs.shifts.checkShiftfile(asn_direct_file)
