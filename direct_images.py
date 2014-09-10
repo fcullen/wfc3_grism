@@ -3,6 +3,37 @@ import figs
 import pyfits
 import os
 
+def process_direct_images(asn_direct_file):
+
+    #### first get the shifts between the individual direct exposures:
+    print "\n Done!"
+    figs.showMessage('RUNNING TWEAKSHIFT ON DIRECT IMAGES')
+    figs.correct_shifts.run_tweakshifts_on_direct_exposures(asn_direct_file, verbose=True)
+
+    # #### drizzle them together:
+    print "\n Done!"
+    figs.showMessage('RUNNING MULTIDRIZZLE ON DIRECT IMAGES')
+    figs.multidrizzle.direct_multidrizzle_run(asn_direct_file, shiftfile='%s_shifts.txt' %(figs.options['ROOT_DIRECT']))
+
+    ### cut out a region of the CANDEL image to use to align the grism exposures:
+    print "\n Done!"
+    figs.showMessage('CUTTING OUT CANDELS REGION TO ALIGN')
+    figs.correct_shifts.run_sregister_to_cutout_CANDELS_region(asn_direct_file, mosiac_drz=figs.options['ALIGN_IMAGE'])
+
+    # #### align dirzzled image to reference CANDELS mosaic:
+    print "\n Done!"
+    figs.showMessage('RUNNING TWEAKREG TO ALIGN DIRECT IMAGE TO CANDELS')
+    figs.correct_shifts.align_direct_to_reference(asn_direct_file, verbose=True)
+
+    #### copy over the new .flt files into the DATA directory to apply new shfits:
+    print "\n Done!"
+    figs.showMessage('RE-RUNNING MULTIDRIZZLE WITH THE NEW SHIFTS')
+    copy_over_fresh_flt_files(asn_filename=figs.options['ASN_DIRECT'], from_path='../RAW')
+    figs.multidrizzle.direct_multidrizzle_run(asn_direct_file, shiftfile='%s_reference_image_shifts.txt' %(figs.options['ROOT_DIRECT']))
+
+    ### get the new cut-out of the CANDELS region, should now be aligned
+    figs.correct_shifts.run_sregister_to_cutout_CANDELS_region(asn_direct_file, mosiac_drz=figs.options['ALIGN_IMAGE'])
+
 def copy_over_fresh_flt_files(asn_filename, from_path='../RAW'):
 	"""
 	Copys over the raw _flt.fits files into the DATA directory, applies a best flat frame
@@ -116,60 +147,3 @@ def apply_best_flat(fits_file, verbose=False):
             
         if verbose:
             print MSG
-
-def align_raw_flt_to_reference(raw_flt, reference_image):
-
-	# get out the extension of the flt file:
-	root_name = raw_flt.split('_flt.fits')[0]
-
-	#### Use swarp to combine the alignment images to the same image 
-	#### dimensions as the direct mosaic
-	try:
-		os.remove(root_name+'_align.fits')
-	except:
-		pass
-
-	swarp_to_image(input_image=raw_flt,
-				   ref_image=reference_image,
-				   output=root_name+'_align.fits', image_extension=1,
-				   ref_extension=0)
-
-def swarp_to_image(input_image=None, ref_image=None,output=None, image_extension=0, ref_extension=0):
-    """
-	swarp_to_image(input=None,matchImage=None,output=None,
-                 match_extension=0)
-    
-    SWarp input image to same size/scale as matchIMage.
-    Output default is input_root+'.match.fits'
-    
-    Input is a list of images
-    """
-    from figs.sex import SWarp
-
-    if not ref_image:
-        return False
-    
-    if not output:
-        output = os.path.basename(input).split('.fits')[0]+'.match.fits'
-    
-    #### initialize SWarp
-    sw = SWarp()
-    sw._aXeDefaults()
-    sw.overwrite = True
-    
-    #### Get first guess coordinates
-    sw.swarpMatchImage(input_image, extension=image_extension)
-    status = sw.swarpImage(input_image + '[%d]' %image_extension, mode='wait')
-    os.remove('coadd.fits')
-    os.remove('coadd.weight.fits')
-    
-    #### Recenter
-    sw.swarpRecenter()
-    
-    #### Make the final output image
-    sw.options['IMAGEOUT_NAME'] = output
-    #sw.options['WEIGHTOUT_NAME'] = base+'.match.weight.fits'
-    
-    ref_image += '[%d]' %ref_extension
-    status = sw.swarpImage(ref_image, mode='direct')
-    os.remove('coadd.weight.fits')

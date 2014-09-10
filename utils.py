@@ -5,6 +5,8 @@ import time
 import pyfits
 import numpy as np
 
+from pyraf import iraf
+
 class ASNFile(object):
     """
     ASNFile()
@@ -255,3 +257,9 @@ def get_package_data(dataname):
         output = fp.read()
         fp.close()
         return output
+
+def iraf_flpr():
+
+    iraf.flpr()
+    iraf.flpr()
+    iraf.flpr()

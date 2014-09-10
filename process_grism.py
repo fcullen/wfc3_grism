@@ -123,6 +123,12 @@ def reduction_script(asn_grism=None, asn_direct=None, test_run=False):
 	    figs.showMessage("No ASN driect file supplied", warn=True)
 	    return False
 
+	### make holders for the original ASN filenames used for copying
+	### over the original files:
+	figs.options['ASN_DIRECT'] = asn_direct
+	figs.options['ASN_GRISM'] = asn_grism
+
+
 	figs.showMessage('PREPARING ENVIRONMENT, DIRECTORS AND FILES FOR REDUCTION')
 
 	### make sure we're in the root directory of the reduction:
@@ -147,46 +153,21 @@ def reduction_script(asn_grism=None, asn_direct=None, test_run=False):
 	figs.showMessage('STAGE I: DIRECT IMAGES')
 
 	#### copy over the ./RAW files into the DATA directory:
-	figs.process_direct_images.copy_over_fresh_flt_files(asn_filename=asn_direct,
-													     from_path='../RAW')
+	figs.direct_images.copy_over_fresh_flt_files(asn_filename=figs.options['ASN_DIRECT'], from_path='../RAW')
 
 	#### adjust the target names for the grism and direct files
 	asn_direct_file = figs.utils.make_targname_asn(asn_direct)
 	asn_grism_file = figs.utils.make_targname_asn(asn_grism)
 
-	#### first get the shifts between the individual direct exposures:
-	print "\n Done!"
-	figs.showMessage('RUNNING TWEAKREG ON DIRECT IMAGES')
-	figs.correct_shifts.run_tweakreg_on_direct_exposures(asn_direct_file, verbose=True)
+	### get rootnames of the grism and direct files:
+	figs.options['ROOT_DIRECT'] = asn_direct_file.split('_asn.fits')[0]
+	figs.options['ROOT_GRISM'] = asn_grism_file.split('_asn.fits')[0]
 
-	#### drizzle them together:
-	print "\n Done!"
-	figs.showMessage('RUNNING ASTRODRIZZLE ON DIRECT IMAGES')
-	figs.astrodrizzle.direct_astrodrizzle_run(asn_direct_file)
+	### process the direct exposures
+	figs.direct_images.process_direct_images(asn_direct_file)
 
-	#### align dirzzled image to reference CANDELS mosaic:
-	print "\n Done!"
-	figs.showMessage('RUNNING TWEAKREG TO ALIGN DIRECT IMAGE TO CANDELS')
-	figs.correct_shifts.run_tweakreg_to_align_to_reference(asn_direct_file,
-														   reference_drz=figs.options['ALIGN_IMAGE'],
-														   verbose=True)
-
-	#figs.shifts.run_tweakshifts(asn_direct_file, verbose=True)
-	#figs.shifts.checkShiftfile(asn_direct_file)
-	#figs.shifts.default_rotation(asn_direct_file)
-
-	#### immediate future steps: 
-	#### -- combine with astrodrizzle.
-	#### -- align combined image to reference image with tweakreg.
-	#### -- blot back to initial images.
-	#### -- do background subtraction on the raw direct images.
-	#### -- recombine to get final F140W direct image for pointing.
-
-	### change back to root directory and cleanup if
-	### only doing a test
+	### change back to root directory 
 	os.chdir(figs.options['ROOT_DIR'])
-	if test_run == True:
-		cleanup_reduction_directories()
 
 
 	

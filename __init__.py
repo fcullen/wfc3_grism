@@ -6,13 +6,11 @@ Based on: https://threedhst.googlecode.com/svn/threedhst/
 
 import terminal_controller
 import utils
-import shifts
 import correct_shifts
-import astrodrizzle
+import multidrizzle
 import process_grism
-import regions
 import sex
-import process_direct_images
+import direct_images
 
 options = {}
 
@@ -87,6 +85,7 @@ def defaultOptions():
 
     # the name of the wfc3 grism grating being used:
     options['GRISM_NAME'] = 'G141'
+    options['MAG_ZEROPOINT'] = 26.46
 
     # an image used to align the raw 3dhst data:
     options['ALIGN_IMAGE'] = '/disk1/fc/FIGS/tests/uds_ref_image/hlsp_candels_hst_wfc3_uds-tot_f125w_v1.0_drz.fits'
