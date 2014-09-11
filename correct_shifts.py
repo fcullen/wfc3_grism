@@ -73,7 +73,7 @@ def run_tweakshifts_on_direct_exposures(asn_direct_file, verbose=True):
 	iraf.tweakshifts(input= asn_direct_file, 
 							shiftfile='',
 							reference='%s_tweak.fits' %root,
-							output = '%s_shifts.txt' %root, 
+							output = '%s_initial_shifts.txt' %root, 
 							findmode = 'catalog',
 							gencatalog = 'daofind', 
 							sextractpars = '', 
@@ -259,7 +259,8 @@ def align_direct_to_reference(asn_direct_file, verbose=True, n_iter=5):
 	remvfiles = ['SCI.fits','WHT.fits','align.cat',
 				'align.map','align.match','align.reg','align.xy',
 				'direct.cat','direct.reg','direct.xy',
-				'drz_sci.fits','drz_wht.fits','bg.fits']
+				'drz_sci.fits','drz_wht.fits','bg.fits', 'imxymatch.1', 'sex_stderr',
+				'figs_auto.sex', 'figs_auto.param', 'default.nnw', 'default.conv']
 
 	for file in remvfiles:
 		try:
@@ -291,7 +292,7 @@ def align_direct_to_reference(asn_direct_file, verbose=True, n_iter=5):
 	fp.close()
 
 	#### Read the shiftfile
-	shiftF = ShiftFile('%s_shifts.txt' %(root))
+	shiftF = ShiftFile('%s_initial_shifts.txt' %(root))
 
 	#### Apply the alignment shifts to the shiftfile
 	shiftF.xshift = list(np.array(shiftF.xshift)-xsh)
@@ -299,7 +300,7 @@ def align_direct_to_reference(asn_direct_file, verbose=True, n_iter=5):
 	shiftF.rotate = list((np.array(shiftF.rotate)+rot) % 360)
 	shiftF.scale = list(np.array(shiftF.scale)*scale)
 
-	shiftF.write('%s_reference_image_shifts.txt' %(root))
+	shiftF.write('%s_final_shifts.txt' %(root))
 
 class ShiftFile():
 	"""

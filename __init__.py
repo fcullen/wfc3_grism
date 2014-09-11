@@ -4,13 +4,21 @@ A pipeline for the reduction fo the WFC3 3D-HST grism data
 Based on: https://threedhst.googlecode.com/svn/threedhst/
 """
 
+### utilities:
 import terminal_controller
 import utils
-import correct_shifts
+
+### wrappers:
 import multidrizzle
-import process_grism
 import sex
+
+### pipeline tasks:
+import correct_shifts
 import direct_images
+import grism_images
+
+### the main program:
+import pipeline
 
 options = {}
 
@@ -73,28 +81,35 @@ def defaultOptions():
     
     >>> figs.defaultOptions()
     >>> figs.showOptions()
-    """    
+    """
+
     showMessage('Initializing FIGS parameters')
     
-    # delete all keywords and reset
+    #### delete all keywords and reset
     for key in options.keys():
         pop = options.popitem()
     
-    # the root directory for a 3D-HST reduction:
+    ### the root directory for a 3D-HST reduction:
     options['ROOT_DIR'] = '/disk1/fc/FIGS/tests/pipeline_test'
 
-    # the name of the wfc3 grism grating being used:
+    ### the name of the wfc3 grism grating being used:
     options['GRISM_NAME'] = 'G141'
     options['MAG_ZEROPOINT'] = 26.46
 
-    # an image used to align the raw 3dhst data:
+    ### an image used to align the raw 3dhst data:
     options['ALIGN_IMAGE'] = '/disk1/fc/FIGS/tests/uds_ref_image/hlsp_candels_hst_wfc3_uds-tot_f125w_v1.0_drz.fits'
 
-    # configuration options
+    ### directory where all config files are kept:
+    options['CONFIG_FILE_DIRECTORY'] = '/disk1/fc/FIGS/tests/conf_files'
+
+    ### configuration options
     options['CONFIG_FILE'] = 'WFC3.IR.G141.V2.0.conf'
     options['SKY_BACKGROUND'] = None
     options['DRZRESOLA'] = '46.5'
     options['DRZSCALE'] = '0.128254'
+
+    ### location of the 3D-HST master sky backgrounds:
+    options['3DHST_MASTER_SKIES'] = ['sky_cosmos.fits', 'sky_goodsn_hi.fits', 'sky_goodsn_lo.fits', 'sky_goodsn_vhi.fits']
 
 # set the default options    
 defaultOptions()

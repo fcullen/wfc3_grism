@@ -1,8 +1,10 @@
+import figs
+
 import os
 import string
 import time
 
-import pyfits
+from astropy.io import fits
 import numpy as np
 
 from pyraf import iraf
@@ -35,20 +37,19 @@ class ASNFile(object):
         
         Read an ASN FITS file (self.file).
         """
-        import numpy as np
         from warnings import warn
         
-        self.in_fits = pyfits.open(self.file)
+        self.in_fits = fits.open(self.file)
         
         data = self.in_fits[1].data
         
         if grow:
             #### Allow more characters in the MEMNAME column
-            memname = pyfits.Column(name='MEMNAME', format='40A', array=self.in_fits[1].columns[0].array.astype('S40'), disp='A40')
+            memname = fits.Column(name='MEMNAME', format='40A', array=self.in_fits[1].columns[0].array.astype('S40'), disp='A40')
             memtype = self.in_fits[1].columns[1]
             memprsnt = self.in_fits[1].columns[2]
-            coldefs = pyfits.ColDefs([memname, memtype, memprsnt])
-            hdu = pyfits.new_table(coldefs)
+            coldefs = fits.ColDefs([memname, memtype, memprsnt])
+            hdu = fits.new_table(coldefs)
             hdu.header = self.in_fits[1].header
             hdu.header['TFORM1'] = '40A'
             hdu.header['TDISP1'] = 'A40'
@@ -101,7 +102,7 @@ class ASNFile(object):
             #### Primary HDU
             hdu = self.in_fits[0].copy()
             #### BinTable HDU
-            tbhdu = pyfits.new_table(self.in_fits[1].columns, nrows=nrows, fill=True)
+            tbhdu = fits.new_table(self.in_fits[1].columns, nrows=nrows, fill=True)
             for i in range(nexp):
                 tbhdu.data[i] = (self.exposures[i].upper(), 'EXP-DTH', True)
             if nprod > 0:
@@ -111,7 +112,7 @@ class ASNFile(object):
             tbhdu.header.update('ASN_ID',out_file.split('_asn.fits')[0])
             tbhdu.header.update('ASN_TAB',out_file)
             #### Create HDUList and write it to output file
-            self.out_fits = pyfits.HDUList([hdu,tbhdu])
+            self.out_fits = fits.HDUList([hdu,tbhdu])
             if 'EXTEND' not in hdu.header.keys():
                 hdu.header.update('EXTEND', True, after='NAXIS')
                 
@@ -182,7 +183,7 @@ def make_targname_asn(asn_file, newfile=True, use_filtname=True, path_to_flt='..
     asn = ASNFile(path_to_flt+asn_file)
     
     flt_file = find_fits_gz(path_to_flt+'/'+asn.exposures[0]+'_flt.fits')
-    im = pyfits.open(flt_file)
+    im = fits.open(flt_file)
     
     instrum = im[0].header['INSTRUME']
     if instrum == 'ACS':
@@ -263,3 +264,117 @@ def iraf_flpr():
     iraf.flpr()
     iraf.flpr()
     iraf.flpr()
+
+def copy_over_fresh_flt_files(asn_filename, from_path='../RAW'):
+    """
+    Copys over the raw _flt.fits files into the DATA directory, applies a best flat frame
+    and updates to the most recent ICDTAB.
+    """
+
+    # make an ASN object from the asn file
+    ASN  = figs.utils.ASNFile(file='%s/%s' %(from_path, asn_filename))
+
+    # extract the list of exposrues and loop through them:
+    explist = []
+    explist.extend(ASN.exposures)
+
+    for exp in explist:
+
+        # first find the file and open it as a fits object
+        fits_file = figs.utils.find_fits_gz('%s/%s_flt.fits' %(from_path, exp))
+        fi = fits.open(fits_file)
+
+        # remove the current copy if one alrady exists:
+        try:
+            os.remove('./%s_flt.fits' %(exp))
+        except:
+            pass
+
+        # write the fits file to the current ('/DATA') directory
+        fi.writeto('./%s_flt.fits' %(exp), clobber=True)
+
+        # now see that the flat-flied applied to image is the best available and apply
+        # better flat if one is avaiable, can comment this out if just want to stick
+        # with the original flat field.
+        apply_best_flat('%s_flt.fits' %(exp), verbose=True)
+
+def find_best_flat(flt_fits, verbose=True):
+    """
+    Find the most recent PFL file in $IREF for the filter used for the 
+    provided FLT image.  Doesn't do any special check on USEAFTER date, just
+    looks for the most-recently modified file. 
+    """
+    import glob
+    import os.path
+    import time
+    
+    IREF = os.environ["iref"]
+
+    the_filter = fits.getheader(flt_fits,0).get('FILTER')
+    
+    pfls = glob.glob(IREF+'*pfl.fits')
+    latest = 0
+    best_pfl = None
+    
+    for pfl in pfls:
+        head = fits.getheader(pfl)
+        if head.get('FILTER') != the_filter:
+            continue    
+        
+        this_created = os.path.getmtime(pfl)
+        if this_created > latest:
+            best_pfl = pfl
+            latest = this_created
+            
+        if verbose:
+            print '%s %s %s' %(pfl, the_filter, time.ctime(latest))
+    
+    return best_pfl #, the_filter, time.ctime(latest)
+
+def apply_best_flat(fits_file, verbose=False):
+    """
+    Check that the flat used in the pipeline calibration is the 
+    best available.  If not, multiply by the flat used and divide
+    by the better flat.
+    
+    Input fits_file can either be an ASN list or an individual FLT file
+    """
+
+    fits_list = [fits_file]
+    
+    if fits_file.find('_asn.fits') > 0:
+        asn = figs.utils.ASNFile(fits_file)
+        fits_list = []
+        for exp in asn.exposures:
+            fits_list.append(exp+'_flt.fits')
+    
+    for file in fits_list:
+
+        im = fits.open(file, 'update')
+
+        USED_PFL = im[0].header['PFLTFILE'].split('$')[1]
+        BEST_PFL = find_best_flat(file, verbose=False)
+
+        if BEST_PFL is None:
+            BEST_PFL = USED_PFL
+
+        IREF = os.environ["iref"]+"/"
+            
+        MSG = 'PFLAT, %s: Used= %s, Best= %s' %(file, USED_PFL, BEST_PFL)
+        
+        if BEST_PFL is None:
+            figs.showMessage("No PFL file found! (NEED %s)" %(USED_PFL), warn=True)
+                    
+        BEST_PFL = os.path.basename(BEST_PFL)
+                
+        if USED_PFL != BEST_PFL:
+            MSG += ' *'
+            used = fits.open(IREF+USED_PFL)
+            best = fits.open(IREF+BEST_PFL)
+            
+            im[1].data *= (used[1].data/best[1].data)[5:-5,5:-5]
+            im[0].header.update('PFLTFILE', 'iref$'+BEST_PFL)
+            im.flush()
+            
+        if verbose:
+            print MSG

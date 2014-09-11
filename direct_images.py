@@ -1,149 +1,60 @@
 import figs
-
-import pyfits
 import os
 
 def process_direct_images(asn_direct_file):
+    """
+    Proccess the direct images in a grism pointing. The steps are:
+
+    i)   Correct pointing error shifts with tweakshifts
+    ii)  Run multidrizzle with native pixel scale to flag cosmic rays
+    iii) Run multidrizzle to drizzle to 1/2 pixel scale
+    iv)  Resgister to CANDELS mosiac to get rough area of overlap
+    v)   Align drizzled image to mosaic using figs.correct_shifts.align_direct_to_reference()
+    vi)  Copy over fresh _flt files and re-run multidrizzle with new shifts
+    """
 
     #### first get the shifts between the individual direct exposures:
-    print "\n Done!"
     figs.showMessage('RUNNING TWEAKSHIFT ON DIRECT IMAGES')
-    figs.correct_shifts.run_tweakshifts_on_direct_exposures(asn_direct_file, verbose=True)
+    figs.correct_shifts.run_tweakshifts_on_direct_exposures(asn_direct_file, 
+                                                            verbose=True)
 
-    # #### drizzle them together:
-    print "\n Done!"
+    #### drizzle them together:
     figs.showMessage('RUNNING MULTIDRIZZLE ON DIRECT IMAGES')
-    figs.multidrizzle.direct_multidrizzle_run(asn_direct_file, shiftfile='%s_shifts.txt' %(figs.options['ROOT_DIRECT']))
+
+    ### first pass use native pixel scale for cosmic ray rejection:
+    figs.multidrizzle.multidrizzle_run(asn_direct_file, 
+                                       shiftfile='%s_initial_shifts.txt' %(figs.options['ROOT_DIRECT']), 
+                                       pixfrac=1.0, 
+                                       final_scale=0.128254, 
+                                       driz_cr=True,
+                                       skysub=True)
+
+    ### now sample at 1/2 pixel scale for registering to CANDELS images:
+    figs.multidrizzle.multidrizzle_run(asn_direct_file, 
+                                       shiftfile='%s_initial_shifts.txt' %(figs.options['ROOT_DIRECT']), 
+                                       pixfrac=0.8, 
+                                       final_scale=0.06, 
+                                       driz_cr=False,
+                                       skysub=True)
 
     ### cut out a region of the CANDEL image to use to align the grism exposures:
-    print "\n Done!"
     figs.showMessage('CUTTING OUT CANDELS REGION TO ALIGN')
     figs.correct_shifts.run_sregister_to_cutout_CANDELS_region(asn_direct_file, mosiac_drz=figs.options['ALIGN_IMAGE'])
 
-    # #### align dirzzled image to reference CANDELS mosaic:
-    print "\n Done!"
-    figs.showMessage('RUNNING TWEAKREG TO ALIGN DIRECT IMAGE TO CANDELS')
+    ### align dirzzled image to reference CANDELS mosaic:
+    figs.showMessage('ALIGNING DIRECT IMAGE TO CANDELS')
     figs.correct_shifts.align_direct_to_reference(asn_direct_file, verbose=True)
 
     #### copy over the new .flt files into the DATA directory to apply new shfits:
-    print "\n Done!"
     figs.showMessage('RE-RUNNING MULTIDRIZZLE WITH THE NEW SHIFTS')
-    copy_over_fresh_flt_files(asn_filename=figs.options['ASN_DIRECT'], from_path='../RAW')
-    figs.multidrizzle.direct_multidrizzle_run(asn_direct_file, shiftfile='%s_reference_image_shifts.txt' %(figs.options['ROOT_DIRECT']))
+    figs.utils.copy_over_fresh_flt_files(asn_filename=figs.options['ASN_DIRECT'], from_path='../RAW')
+    figs.multidrizzle.multidrizzle_run(asn_direct_file, 
+                                       shiftfile='%s_final_shifts.txt' %(figs.options['ROOT_DIRECT']),
+                                       pixfrac=0.8, 
+                                       final_scale=0.06, 
+                                       driz_cr=False,
+                                       skysub=True)
 
-    ### get the new cut-out of the CANDELS region, should now be aligned
-    figs.correct_shifts.run_sregister_to_cutout_CANDELS_region(asn_direct_file, mosiac_drz=figs.options['ALIGN_IMAGE'])
-
-def copy_over_fresh_flt_files(asn_filename, from_path='../RAW'):
-	"""
-	Copys over the raw _flt.fits files into the DATA directory, applies a best flat frame
-	and updates to the most recent ICDTAB.
-	"""
-
-	# make an ASN object from the asn file
-	ASN  = figs.utils.ASNFile(file='%s/%s' %(from_path, asn_filename))
-
-	# extract the list of exposrues and loop through them:
-	explist = []
-	explist.extend(ASN.exposures)
-
-	for exp in explist:
-
-		# first find the file and open it as a pyfits object
-		fits_file = figs.utils.find_fits_gz('%s/%s_flt.fits' %(from_path, exp))
-		fi = pyfits.open(fits_file)
-
-		# remove the current copy if one alrady exists:
-		try:
-			os.remove('./%s_flt.fits' %(exp))
-		except:
-			pass
-
-		# write the fits file to the current ('/DATA') directory
-		fi.writeto('./%s_flt.fits' %(exp), clobber=True)
-
-		# now see that the flat-flied applied to image is the best available and apply
-		# better flat if one is avaiable, can comment this out if just want to stick
-		# with the original flat field.
-		apply_best_flat('%s_flt.fits' %(exp), verbose=True)
-
-def find_best_flat(flt_fits, verbose=True):
-    """
-    Find the most recent PFL file in $IREF for the filter used for the 
-    provided FLT image.  Doesn't do any special check on USEAFTER date, just
-    looks for the most-recently modified file. 
-    """
-    import glob
-    import os.path
-    import time
-    
-    IREF = os.environ["iref"]
-
-    the_filter = pyfits.getheader(flt_fits,0).get('FILTER')
-    
-    pfls = glob.glob(IREF+'*pfl.fits')
-    latest = 0
-    best_pfl = None
-    
-    for pfl in pfls:
-        head = pyfits.getheader(pfl)
-        if head.get('FILTER') != the_filter:
-            continue    
-        
-        this_created = os.path.getmtime(pfl)
-        if this_created > latest:
-            best_pfl = pfl
-            latest = this_created
-            
-        if verbose:
-            print '%s %s %s' %(pfl, the_filter, time.ctime(latest))
-    
-    return best_pfl #, the_filter, time.ctime(latest)
-
-def apply_best_flat(fits_file, verbose=False):
-    """
-    Check that the flat used in the pipeline calibration is the 
-    best available.  If not, multiply by the flat used and divide
-    by the better flat.
-    
-    Input fits_file can either be an ASN list or an individual FLT file
-    """
-
-    fits_list = [fits_file]
-    
-    if fits_file.find('_asn.fits') > 0:
-        asn = figs.utils.ASNFile(fits_file)
-        fits_list = []
-        for exp in asn.exposures:
-            fits_list.append(exp+'_flt.fits')
-    
-    for file in fits_list:
-
-        im = pyfits.open(file, 'update')
-
-        USED_PFL = im[0].header['PFLTFILE'].split('$')[1]
-        BEST_PFL = find_best_flat(file, verbose=False)
-
-        if BEST_PFL is None:
-        	BEST_PFL = USED_PFL
-
-        IREF = os.environ["iref"]+"/"
-            
-        MSG = 'PFLAT, %s: Used= %s, Best= %s' %(file, USED_PFL, BEST_PFL)
-        
-        if BEST_PFL is None:
-            figs.showMessage("No PFL file found! (NEED %s)" %(USED_PFL), warn=True)
-                    
-        BEST_PFL = os.path.basename(BEST_PFL)
-                
-        if USED_PFL != BEST_PFL:
-            MSG += ' *'
-            used = pyfits.open(IREF+USED_PFL)
-            best = pyfits.open(IREF+BEST_PFL)
-            
-            im[1].data *= (used[1].data/best[1].data)[5:-5,5:-5]
-            im[0].header.update('PFLTFILE', 'iref$'+BEST_PFL)
-            im.flush()
-            
-        if verbose:
-            print MSG
+    ### at this point can perform background subtraction etc. on the direct image but
+    ### don't need to do this if using different detection image, it is enough that the
+    ### correct WCS solution has been found to align the image to CANDELS
