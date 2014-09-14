@@ -1,6 +1,10 @@
 import figs
 
 from astropy.io import fits
+import astropy.stats as stats
+
+import numpy as np
+
 import os
 
 def process_grism_images(asn_grism_file):
@@ -51,21 +55,22 @@ def process_grism_images(asn_grism_file):
 		 					   grism_segmap='%s.seg.fits' %(grism_exposure))
 
 
-	#### finally clean once more for cosmic rays and then drizzle to final resolution, skip background subtraction:
-	# figs.showMessage('RE-RUNNING MULTIDRIZZLE WITH BACKGROUND SUBTRACTED GRISM EXPOSURES')
-	# figs.multidrizzle.multidrizzle_run(asn_grism_file, 
-	# 								   shiftfile='%s_final_shifts.txt' %(figs.options['ROOT_GRISM']), 
-	# 								   pixfrac=1.0, 
-	# 								   final_scale=0.128254, 
-	# 								   driz_cr=True,
-	# 								   skysub=False)
+	#### clean once more for cosmic rays and then drizzle to final resolution, skip background subtraction:
+	figs.showMessage('RE-RUNNING MULTIDRIZZLE WITH BACKGROUND SUBTRACTED GRISM EXPOSURES')
+	figs.multidrizzle.multidrizzle_run(asn_grism_file, 
+									   shiftfile='%s_final_shifts.txt' %(figs.options['ROOT_GRISM']), 
+									   pixfrac=1.0, 
+									   final_scale=0.128254, 
+									   driz_cr=True,
+									   skysub=False)
 
-	# figs.multidrizzle.multidrizzle_run(asn_grism_file, 
-	# 								   shiftfile='%s_final_shifts.txt' %(figs.options['ROOT_GRISM']), 
-	# 								   pixfrac=0.8, 
-	# 								   final_scale=0.06, 
-	# 								   driz_cr=False,
-	# 								   skysub=False)
+	### finally drizzle to the desired resolution:
+	figs.multidrizzle.multidrizzle_run(asn_grism_file, 
+									   shiftfile='%s_final_shifts.txt' %(figs.options['ROOT_GRISM']), 
+									   pixfrac=0.8, 
+									   final_scale=0.06, 
+									   driz_cr=False,
+									   skysub=False)
 
 def make_grism_shiftfile(asn_grism_file):
 	"""
@@ -126,9 +131,97 @@ def make_grism_exposure_segmaps(asn_grism_file, sigma=0.5):
 	
 		status = se.sextractImage('%s.BLOT.SCI.fits' %(exp))
 
-def grism_sky_subtraction(grism_flt, grism_segmap):
+def get_flat():
+	"""
+	Get the flat field for sky-subtraction
+	"""
+
+	f140w_hdu = fits.open('%suc721143i_pfl.fits' %os.environ['iref'])
+	g141_hdu = fits.open('%su4m1335mi_pfl.fits' %os.environ['iref'])
+
+	flat = g141_hdu[1].data[5:1019,5:1019] / f140w_hdu[1].data[5:1019,5:1019]
+
+	return flat
+
+def get_column_skyvals(im_data, seg_hdu, flat=None):
+	"""
+	Get the median sky value across each column in an image
+	using the segmentation map to mask actual sources.
+	"""
+
+	### get image and apply flat if required:
+	im = im_data
+
+	if flat is not None:
+		im *= flat
+
+	### get segmentation map:
+	seg = seg_hdu[0].data
+
+	### apply seg mask:
+	seg_mask = (seg == 0)
+
+	### get the profile:
+	yprof = np.empty(im.shape[0])
+
+	for i in range(im.shape[0]):
+		### get the segemntation map of this column:
+		colmask = seg_mask[:,i]
+		### extract the sky pixles:
+		sky_pixels = im[:,i]
+
+		yprof[i] = np.median(sky_pixels)
+
+	return yprof
+
+def find_best_sky(im_hdu, seg_hdu):
+
+	### get a list of the master-sky files:
+	sky_files = figs.options['3DHST_MASTER_SKIES']
+
+	### open the grism exposure and show image:
+	flt_hdu = fits.open('ibhj32r2q_flt.fits')
+
+	### open the segmentation image and get mask:
+	seg_hdu = fits.open('ibhj32r2q.seg.fits')
+
+	### get the image profile and plot:
+	im_profile = get_column_skyvals(im_hdu[1].data, seg_hdu, flat=get_flat())
+
+	### do the chi-squared fit:
+	chi2 = 1.e10
+	best_sky = None
+
+	for sky_file in sky_files:
+
+		### open sky image and get profile:
+		sky_hdu = fits.open('%s/CONF/%s' %(figs.options['ROOT_DIR'], sky_file)
+		sky_profile = get_column_skyvals(sky_hdu[0].data, seg_hdu, flat=None)
+
+		### get the scale factor for sky to data:
+		a = np.sum(sky_profile * im_profile) / np.sum(sky_profile*sky_profile)
+		sky_profile *= a
+
+		### get the chi2 value:
+		chi2_model = np.sum(np.power(sky_profile - im_profile, 2))
+
+		### check if the chi2 is better than current:
+		if chi2_model < chi2:
+			chi2 = chi2_model * 1.0
+			best_sky = sky_file
+
+	print "Best fitting sky file is: %s" %best_sky
+
+	return best_sky
+
+def grism_sky_subtraction(grism_flt, grism_segmap, stat='median'):
 	"""
 	Performs the sky-subtraction on each of the grism exposures.
+
+	Have to mulitply out _flt images by the flat-field to be consistent
+	with the Brammer et. al. 2011 master background images.
+	('to separate out pixel-to-pixel variations from the more smoothly
+    varying background')
 	"""
 
 	### open the grism exposure
@@ -136,4 +229,55 @@ def grism_sky_subtraction(grism_flt, grism_segmap):
 
 	### open the segmap:
 	seg_hdu = fits.open(grism_segmap)
+
+	### find the best sky:
+	best_fit_sky_file = find_best_sky(flt_hdu, seg_hdu, show=True)
+
+	### open the best fitting sky:
+	sky_hdu = fits.open('%s/CONF/%s' %(figs.options['ROOT_DIR'], best_fit_sky_file)
+
+	### re-open the grism exposure:
+	flt_hdu = fits.open('ibhj32r2q_flt.fits')
+
+	### multply by the flat:
+	flt_hdu[1].data *= get_flat()
+
+	### get the segmentation mass mask:
+	seg = seg_hdu[0].data
+	seg_mask = (seg == 0)
+
+	### loop through each column in the images:
+	for i in range(flt_hdu[1].data.shape[0]):
+
+		### get the seg-map for that column
+		colmask = seg_mask[:,i]
+		### the master-sky in the source-free pixels:
+		sky_in_col = sky_hdu[0].data[:,i][colmask]
+		### the observed-sky in the source-free pixels:
+		obs_sky = flt_hdu[1].data[:,i][colmask]
+
+		### scale master to observed using median values:
+		sky_hdu[0].data[:,i] *= ((np.median(obs_sky) / np.median(sky_in_col)))
+		
+		### subtract the scaled sky-value from the flt image:
+		flt_hdu[1].data[:,i] -= sky_hdu[0].data[:,i]
+
+	### get the profile along each column and subtract off the median:
+	profile = get_column_skyvals(flt_hdu[1].data, seg_hdu, flat=None)
+	flt_hdu[1].data -= np.median(profile)
+
+	### divide back out by the flat-field:
+	final_image = flt_hdu[1].data / get_flat()
+
+	### re-open the grism image:
+	flt_hdu = fits.open('ibhj32r2q_flt.fits', mode='update')
+	flt_hdu[1].data = final_image
+
+	### write the new image to the grism file:
+	flt_hdu.flush()
+
+
+
+
+
 
