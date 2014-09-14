@@ -45,7 +45,7 @@ def process_grism_images(asn_grism_file):
 	make_grism_exposure_segmaps(asn_grism_file, sigma=0.5)
 
 	#### copy over fresh flt files to do final sky subtraction:
-	copy_over_fresh_flt_files(figs.options['ASN_GRISM'], from_path='../RAW')
+	figs.utils.copy_over_fresh_flt_files(figs.options['ASN_GRISM'], from_path='../RAW')
 
 	#### do the full background subtraction on the grism exposures:
 	figs.showMessage('DOING FULL GRISM SKY SUBTRACTION')
@@ -179,12 +179,6 @@ def find_best_sky(im_hdu, seg_hdu):
 	### get a list of the master-sky files:
 	sky_files = figs.options['3DHST_MASTER_SKIES']
 
-	### open the grism exposure and show image:
-	flt_hdu = fits.open('ibhj32r2q_flt.fits')
-
-	### open the segmentation image and get mask:
-	seg_hdu = fits.open('ibhj32r2q.seg.fits')
-
 	### get the image profile and plot:
 	im_profile = get_column_skyvals(im_hdu[1].data, seg_hdu, flat=get_flat())
 
@@ -195,7 +189,7 @@ def find_best_sky(im_hdu, seg_hdu):
 	for sky_file in sky_files:
 
 		### open sky image and get profile:
-		sky_hdu = fits.open('%s/CONF/%s' %(figs.options['ROOT_DIR'], sky_file)
+		sky_hdu = fits.open('%s/CONF/%s' %(figs.options['ROOT_DIR'], sky_file))
 		sky_profile = get_column_skyvals(sky_hdu[0].data, seg_hdu, flat=None)
 
 		### get the scale factor for sky to data:
@@ -231,13 +225,13 @@ def grism_sky_subtraction(grism_flt, grism_segmap, stat='median'):
 	seg_hdu = fits.open(grism_segmap)
 
 	### find the best sky:
-	best_fit_sky_file = find_best_sky(flt_hdu, seg_hdu, show=True)
+	best_fit_sky_file = find_best_sky(flt_hdu, seg_hdu)
 
 	### open the best fitting sky:
-	sky_hdu = fits.open('%s/CONF/%s' %(figs.options['ROOT_DIR'], best_fit_sky_file)
+	sky_hdu = fits.open('%s/CONF/%s' %(figs.options['ROOT_DIR'], best_fit_sky_file))
 
 	### re-open the grism exposure:
-	flt_hdu = fits.open('ibhj32r2q_flt.fits')
+	flt_hdu = fits.open(grism_flt)
 
 	### multply by the flat:
 	flt_hdu[1].data *= get_flat()
@@ -270,8 +264,12 @@ def grism_sky_subtraction(grism_flt, grism_segmap, stat='median'):
 	final_image = flt_hdu[1].data / get_flat()
 
 	### re-open the grism image:
-	flt_hdu = fits.open('ibhj32r2q_flt.fits', mode='update')
+	flt_hdu = fits.open(grism_flt, mode='update')
 	flt_hdu[1].data = final_image
+
+	bad_pixels = ~np.isfinite(flt_hdu[1].data)
+	flt_hdu[1].data[bad_pixels] = 1
+	flt_hdu[3].data[bad_pixels] = flt_hdu[3].data[bad_pixels] | 32
 
 	### write the new image to the grism file:
 	flt_hdu.flush()
