@@ -47,12 +47,19 @@ def process_grism_images(asn_grism_file):
 	#### copy over fresh flt files to do final sky subtraction:
 	figs.utils.copy_over_fresh_flt_files(figs.options['ASN_GRISM'], from_path='../RAW')
 
-	#### do the full background subtraction on the grism exposures:
-	figs.showMessage('DOING FULL GRISM SKY SUBTRACTION')
-	asn = figs.utils.ASNFile(asn_grism_file)
-	for grism_exposure in asn.exposures:
-		 grism_sky_subtraction(grism_flt='%s_flt.fits' %(grism_exposure),
-		 					   grism_segmap='%s.seg.fits' %(grism_exposure))
+
+	if figs.options['MASTER_BACKGROUND_SUBTRACTION']
+		#### do the full background subtraction on the grism exposures:
+		figs.showMessage('DOING FULL GRISM SKY SUBTRACTION')
+		asn = figs.utils.ASNFile(asn_grism_file)
+		for grism_exposure in asn.exposures:
+			 grism_sky_subtraction(grism_flt='%s_flt.fits' %(grism_exposure),
+			 					   grism_segmap='%s.seg.fits' %(grism_exposure))
+		### set skysub to false for the ultidrizzle tasks below:
+		skysub = False
+	else:
+		### do sky subtraction in Multidrizzle
+		skysub = True
 
 
 	#### clean once more for cosmic rays and then drizzle to final resolution, skip background subtraction:
@@ -62,7 +69,7 @@ def process_grism_images(asn_grism_file):
 									   pixfrac=1.0, 
 									   final_scale=0.128254, 
 									   driz_cr=True,
-									   skysub=False)
+									   skysub=skysub)
 
 	### finally drizzle to the desired resolution:
 	figs.multidrizzle.multidrizzle_run(asn_grism_file, 
@@ -70,7 +77,7 @@ def process_grism_images(asn_grism_file):
 									   pixfrac=0.8, 
 									   final_scale=0.06, 
 									   driz_cr=False,
-									   skysub=False)
+									   skysub=skysub)
 
 def make_grism_shiftfile(asn_grism_file):
 	"""
@@ -139,7 +146,8 @@ def get_flat():
 	f140w_hdu = fits.open('%suc721143i_pfl.fits' %os.environ['iref'])
 	g141_hdu = fits.open('%su4m1335mi_pfl.fits' %os.environ['iref'])
 
-	flat = g141_hdu[1].data[5:1019,5:1019] / f140w_hdu[1].data[5:1019,5:1019]
+	### modeify flat by the intrinsic gain variations in the G141 detector:
+	flat = f140w_hdu[1].data[5:1019,5:1019] / g141_hdu[1].data[5:1019,5:1019]
 
 	return flat
 
@@ -153,7 +161,7 @@ def get_column_skyvals(im_data, seg_hdu, flat=None):
 	im = im_data
 
 	if flat is not None:
-		im *= flat
+		im /= flat
 
 	### get segmentation map:
 	seg = seg_hdu[0].data
@@ -177,7 +185,7 @@ def get_column_skyvals(im_data, seg_hdu, flat=None):
 def find_best_sky(im_hdu, seg_hdu):
 
 	### get a list of the master-sky files:
-	sky_files = figs.options['3DHST_MASTER_SKIES']
+	sky_files = figs.options['MASTER_SKIES']
 
 	### get the image profile and plot:
 	im_profile = get_column_skyvals(im_hdu[1].data, seg_hdu, flat=get_flat())
@@ -212,7 +220,7 @@ def grism_sky_subtraction(grism_flt, grism_segmap, stat='median'):
 	"""
 	Performs the sky-subtraction on each of the grism exposures.
 
-	Have to mulitply out _flt images by the flat-field to be consistent
+	Have to divide out _flt images by the flat-field to be consistent
 	with the Brammer et. al. 2011 master background images.
 	('to separate out pixel-to-pixel variations from the more smoothly
     varying background')
@@ -233,8 +241,8 @@ def grism_sky_subtraction(grism_flt, grism_segmap, stat='median'):
 	### re-open the grism exposure:
 	flt_hdu = fits.open(grism_flt)
 
-	### multply by the flat:
-	flt_hdu[1].data *= get_flat()
+	### divide by the flat:
+	flt_hdu[1].data /= get_flat()
 
 	### get the segmentation mass mask:
 	seg = seg_hdu[0].data
@@ -260,8 +268,8 @@ def grism_sky_subtraction(grism_flt, grism_segmap, stat='median'):
 	profile = get_column_skyvals(flt_hdu[1].data, seg_hdu, flat=None)
 	flt_hdu[1].data -= np.median(profile)
 
-	### divide back out by the flat-field:
-	final_image = flt_hdu[1].data / get_flat()
+	### multiply back out by the flat-field:
+	final_image = flt_hdu[1].data * get_flat()
 
 	### re-open the grism image:
 	flt_hdu = fits.open(grism_flt, mode='update')

@@ -39,7 +39,7 @@ def reduction_script(asn_grism=None, asn_direct=None, test_run=False):
 	figs.options['ASN_DIRECT'] = asn_direct
 	figs.options['ASN_GRISM'] = asn_grism
 
-	figs.showMessage('PREPARING ENVIRONMENT, DIRECTORS AND FILES FOR REDUCTION')
+	figs.showMessage('STAGE I: PREPARING ENVIRONMENT, DIRECTORS AND FILES FOR REDUCTION')
 
 	### make sure we're in the root directory of the reduction:
 	os.chdir(figs.options['ROOT_DIR'])
@@ -75,11 +75,11 @@ def reduction_script(asn_grism=None, asn_direct=None, test_run=False):
 	figs.options['ROOT_GRISM'] = asn_grism_file.split('_asn.fits')[0]
 
 	### process the direct exposures:
-	figs.showMessage('STAGE I: DIRECT IMAGES')
+	figs.showMessage('STAGE II: PREPARE DIRECT IMAGES')
 	figs.direct_images.process_direct_images(asn_direct_file)
 
 	### now process the grism exposures:
-	figs.showMessage('STAGE II: GRISM IMAGES')
+	figs.showMessage('STAGE III: PREPARE GRISM IMAGES')
 	figs.grism_images.process_grism_images(asn_grism_file)
 
 	### change back to root directory 

@@ -13,9 +13,10 @@ import multidrizzle
 import sex
 
 ### pipeline tasks:
-import correct_shifts
 import direct_images
 import grism_images
+import correct_shifts
+import source_catalogue
 
 ### the main program:
 import pipeline
@@ -109,7 +110,12 @@ def defaultOptions():
     options['DRZSCALE'] = '0.128254'
 
     ### location of the 3D-HST master sky backgrounds:
-    options['3DHST_MASTER_SKIES'] = ['sky_cosmos.fits', 'sky_goodsn_hi.fits', 'sky_goodsn_lo.fits', 'sky_goodsn_vhi.fits']
+    options['MASTER_BACKGROUND_SUBTRACTION'] = True
+    options['MASTER_SKIES'] = ['sky_cosmos.fits', 'sky_goodsn_hi.fits', 'sky_goodsn_lo.fits', 'sky_goodsn_vhi.fits']
+
+    ### option to input a pre-made source catalog to the reduction pipeline:
+    options['PRE_MADE_INPUT_CATALOGUE'] = None
+    options['PRE_MADE_SEGMENTATION_MAP'] = None
 
 # set the default options    
 defaultOptions()

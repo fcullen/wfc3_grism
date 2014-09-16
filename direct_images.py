@@ -1,6 +1,9 @@
 import figs
 import os
 
+import numpy as np
+from astropy.io import fits
+
 def process_direct_images(asn_direct_file):
     """
     Proccess the direct images in a grism pointing. The steps are:
@@ -55,6 +58,62 @@ def process_direct_images(asn_direct_file):
                                        driz_cr=False,
                                        skysub=True)
 
+    figs.showMessage('ADDING BORDER TO DRZ AND MAKING FINCAL CANDELS CUTOUT')
+    add_border_to_drz(drz_image='%s_drz.fits' %(figs.options['ROOT_DIRECT']), extension=300.)
+    figs.correct_shifts.run_sregister_to_cutout_CANDELS_region(asn_direct_file, mosiac_drz=figs.options['ALIGN_IMAGE'])
+
     ### at this point can perform background subtraction etc. on the direct image but
     ### don't need to do this if using different detection image, it is enough that the
-    ### correct WCS solution has been found to align the image to CANDELS
+    ### correct WCS solution has been found to align the image to CANDELS. The CANDELS images
+    ### will now be used as the detection image for the pipeline.
+
+def add_border_to_drz(drz_image, extension=300.):
+    """
+    Adds a border to the drizzled image so when registering the 
+    CANDELS mosaics cuts out a larger section which is needed to can
+    estimate contamination from objects outside the WFC3 Grism field of view.
+    """
+    
+    hdulist = fits.open(drz_image)
+    
+    for ext in 'SCI', 'WHT':
+
+        data = hdulist[ext].data
+        hdr = hdulist[ext].header
+        
+        newx = hdr['NAXIS1']*0.5+extension
+        newy = hdr['NAXIS2']*0.5+extension
+        
+        hdr.update('CRPIX1', newx)
+        hdr.update('CRPIX2', newy)
+        
+        largeim = np.zeros((hdr['NAXIS2']+2*extension, hdr['NAXIS1']+2*extension))
+        largeim[int(extension):-int(extension),int(extension):-int(extension)]=data[:,:]
+        
+        fits.update(drz_image, largeim, hdr, ext)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
