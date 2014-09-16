@@ -11,7 +11,7 @@ import glob
 
 import shutil
 
-def run_sregister_to_cutout_CANDELS_region(asn_direct_file, mosiac_drz):
+def run_sregister_for_align_image(asn_direct_file, mosiac_drz):
 	"""
 	Run sregister on the drizzled direct mosaic and the CANDELS mosaic to
 	cut out an area to use for aligning the images with tweakreg()
@@ -43,6 +43,60 @@ def run_sregister_to_cutout_CANDELS_region(asn_direct_file, mosiac_drz):
 					   verbose=False)
 	except:
 		pass
+
+
+	### cleanup files:
+	tmps_files = glob.glob('tmps*')
+	for tmps in tmps_files:
+		os.remove(tmps)
+
+	try:
+		os.remove('sregister.db')
+	except:
+		pass
+
+def run_sregister_for_detection_image(asn_direct_file, sci_image, wht_image):
+	"""
+	Run sregister on the drizzled direct mosaic and the CANDELS mosaic to
+	cut out an area to use for creating source catalogue.
+	"""
+
+	### get root name for the reference image:
+	root = figs.options['ROOT_DIRECT']
+
+	images = [sci_image, wht_image]
+	extensions = ['SCI', 'WHT']
+
+	for im, ext in zip(images, extensions)
+
+		### iraf flpr()
+		figs.utils.iraf_flpr()
+
+		### first unlearn the routine:
+		iraf.unlearn('sregister')
+
+		### remove previous versions if they exist:
+		try:
+			os.remove('%s_drz.fits' %(root))
+		except:
+			pass
+
+		try:
+			os.remove('%s_wht.fits' %(root))
+		except:
+			pass
+
+		### run sregister, put in a try-except because
+		### sregister crashes once it has completed when attempting
+		### to delete files it creates. By ignoring this error there is
+		### no change to the actual output:
+		try:
+			iraf.sregister(input=im,
+						   reference='%s_drz.fits[%s]' %(root, ext),
+						   output='%s_detection_%s.fits' %(figs.options['DETECTION_BAND'], ext),
+						   verbose=False)
+		except:
+			pass
 
 
 	### cleanup files:

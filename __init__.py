@@ -98,7 +98,7 @@ def defaultOptions():
     options['MAG_ZEROPOINT'] = 26.46
 
     ### an image used to align the raw 3dhst data:
-    options['ALIGN_IMAGE'] = '/disk1/fc/FIGS/tests/uds_ref_image/hlsp_candels_hst_wfc3_uds-tot_f125w_v1.0_drz.fits'
+    options['ALIGN_IMAGE'] = '/disk1/fc/FIGS/tests/candels_mosaics/gs_all_candels_ers_udf_f160w_v0.5_drz.fits'
 
     ### directory where all config files are kept:
     options['CONFIG_FILE_DIRECTORY'] = '/disk1/fc/FIGS/tests/conf_files'
@@ -116,6 +116,24 @@ def defaultOptions():
     ### option to input a pre-made source catalog to the reduction pipeline:
     options['PRE_MADE_INPUT_CATALOGUE'] = None
     options['PRE_MADE_SEGMENTATION_MAP'] = None
+
+    ### the detection image and band for making source catalogue:
+    options['DETECTION_IMAGE'] = '/disk1/fc/FIGS/tests/candels_mosaics/gs_all_candels_ers_udf_f160w_v0.5_drz.fits'
+    options['DETECTION_WHT'] = '/disk1/fc/FIGS/tests/candels_mosaics/gs_all_candels_ers_udf_f160w_v0.5_wht.fits'
+    optiosn['DETECTION_BAND'] = 'F160W'
+    options['DETECTION_MAG_ZEROPOINT'] = 25.95
+    options['DETECTION_FILTWAVE'] = 1535.
+    options['USE_DETECTION_IMAGE_FOR_ANALYSIS'] = True
+
+    ### general source detection parameters:
+    options['DETECT_THRESH'] = 5     ## Default 2.5
+    options['ANALYSIS_THRESH']  = 5  ## Default 2.5
+    options['GRISM_NAME'] = 'G141'
+    options['MAG_ZEROPOINT'] = 26.46
+    options['FILTWAVE'] = 1392.
+    options['DETECT_MINAREA'] = 5 ## Default 2.5
+    options['BACK_SIZE'] = 256.
+    options['DEBLEND_MINCONT'] = 0.01
 
 # set the default options    
 defaultOptions()

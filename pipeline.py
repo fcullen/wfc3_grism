@@ -82,6 +82,10 @@ def reduction_script(asn_grism=None, asn_direct=None, test_run=False):
 	figs.showMessage('STAGE III: PREPARE GRISM IMAGES')
 	figs.grism_images.process_grism_images(asn_grism_file)
 
+	### now make the source catalog for extraction:
+	figs.showMessage('STAGE IV: MAKING SOURCE CATALOGUE')
+	figs.source_catalogue.make_source_catalogue()
+
 	### change back to root directory 
 	os.chdir(figs.options['ROOT_DIR'])
 

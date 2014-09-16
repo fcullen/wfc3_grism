@@ -42,13 +42,13 @@ def process_direct_images(asn_direct_file):
 
     ### cut out a region of the CANDEL image to use to align the grism exposures:
     figs.showMessage('CUTTING OUT CANDELS REGION TO ALIGN')
-    figs.correct_shifts.run_sregister_to_cutout_CANDELS_region(asn_direct_file, mosiac_drz=figs.options['ALIGN_IMAGE'])
+    figs.correct_shifts.run_sregister_for_align_image(asn_direct_file, mosiac_drz=figs.options['ALIGN_IMAGE'])
 
     ### align dirzzled image to reference CANDELS mosaic:
     figs.showMessage('ALIGNING DIRECT IMAGE TO CANDELS')
     figs.correct_shifts.align_direct_to_reference(asn_direct_file, verbose=True)
 
-    #### copy over the new .flt files into the DATA directory to apply new shfits:
+    ### copy over the new .flt files into the DATA directory to apply new shfits:
     figs.showMessage('RE-RUNNING MULTIDRIZZLE WITH THE NEW SHIFTS')
     figs.utils.copy_over_fresh_flt_files(asn_filename=figs.options['ASN_DIRECT'], from_path='../RAW')
     figs.multidrizzle.multidrizzle_run(asn_direct_file, 
@@ -58,9 +58,13 @@ def process_direct_images(asn_direct_file):
                                        driz_cr=False,
                                        skysub=True)
 
-    figs.showMessage('ADDING BORDER TO DRZ AND MAKING FINCAL CANDELS CUTOUT')
-    add_border_to_drz(drz_image='%s_drz.fits' %(figs.options['ROOT_DIRECT']), extension=300.)
-    figs.correct_shifts.run_sregister_to_cutout_CANDELS_region(asn_direct_file, mosiac_drz=figs.options['ALIGN_IMAGE'])
+    ### now run sregister on CANDELS mosaic if using one as a detection image:
+    if figs.options['DETECTION_IMAGE'] is not None:
+      figs.showMessage('ADDING BORDER TO DRZ AND MAKING FINCAL CANDELS CUTOUT')
+      add_border_to_drz(drz_image='%s_drz.fits' %(figs.options['ROOT_DIRECT']), extension=300.)
+      figs.correct_shifts.run_sregister_for_detection_image(asn_direct_file, 
+                                                            sci_image=figs.options['DETECTION_IMAGE'],
+                                                            wht_image=figs.options['DETECTION_WHT'] )
 
     ### at this point can perform background subtraction etc. on the direct image but
     ### don't need to do this if using different detection image, it is enough that the
