@@ -620,8 +620,8 @@ def make_aXe_lis(asn_grism_file, asn_direct_file):
     
 
     for i in range(n_exposures):
-        fp.write('%s_flt.fits ' + %asn_grism.exposures[i]
-                 '%s_flt_1.cat ' + %asn_direct.exposures[i]
+        fp.write('%s_flt.fits ' %asn_grism.exposures[i] +
+                 '%s_flt_1.cat ' %asn_direct.exposures[i] +
                  '%s_flt.fits 0.0\n' %asn_direct.exposures[i]))
 
     fp.close()
