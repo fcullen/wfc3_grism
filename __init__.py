@@ -142,6 +142,12 @@ def defaultOptions():
                                    ['/disk1/fc/FIGS/tests/candels_mosaics/gs_all_candels_ers_udf_f125w_v0.5_drz.fits', 'F160W', 1536.9, 25.95],
                                    ['/disk1/fc/FIGS/tests/candels_mosaics/gs_all_candels_ers_udf_f160w_v0.5_drz.fits', 'F105W', 1055.2, 26.27]]
 
+    #### Limiting (direct) magnitude for objects run through the grism 
+    #### reduction.  This is useful for cases where you want a very low 
+    #### DETECT_THRESH to get good segmentation images but don't want to
+    #### extract spectra for all of the faint sources.
+    options['LIMITING_MAGNITUDE'] = 26.
+
 # set the default options    
 defaultOptions()
 

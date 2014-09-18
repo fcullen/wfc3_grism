@@ -126,20 +126,16 @@ def register_fluxcube_images(fluxcube_filters):
         ax.set_ylabel(r'$\mathrm{N}$', fontsize=14)
         fig.savefig('./%s_separation.pdf' %(filt[1]))
             
-        #### These are the files IRAF can't find to remove... stupid IRAF
+        ### these are the files IRAF can't find to remove... stupid IRAF
         tmps = glob.glob('tmps*')
+
+        ### remove files that know are in directory:
+        os.remove('./reg.cat')
+        os.remove('./direct.cat')
+        os.remove('./%s_drz_reg.fits' %(filt[1]))
+        os.remove('./%s_wht_reg.fits' %(filt[1]))
         
-        try:
-            os.remove('./temp.db')
-            os.remove('./direct_tmp.fits')
-            os.remove('./mosaic_imreg.cat')
-            os.remove('./direct_imreg.cat')
-            os.remove('./%s_drz_reg.fits' %(filt[1]))
-            os.remove('./%s_wht_reg.fits' %(filt[1]))
-            os.remove('./%s_SCI.fits' %(root))
-            os.remove('./sregister.db')
-            os.remove('./reg.cat')
-            os.remove('./direct.cat')
+        try:            
             for file in tmps:
                 os.remove(file)
         except:

@@ -14,6 +14,7 @@ from iraf import stsdas, dither, slitless, axe
 
 ### non-native python imports:
 import numpy as np
+from astropy.io import fits
 
 ### aXe specific imports:
 import aXe2html.sexcat.sextractcat
@@ -89,6 +90,11 @@ def reduction_script(asn_grism=None, asn_direct=None, test_run=False):
 	### now set up files for the fluxcuve:
 	figs.showMessage('STAGE V: SETTING UP FLUXCUBE')
 	figs.contamination.setup_fluxcube()
+
+	### set up final config parameters for the grism run:
+	figs.showMessage('STAGE VI: FINAL PREPARATION: TUNING CONFIGURATION FILES, MAKING AXE LIST')
+	set_confguration_parameters()
+	figs.utils.make_aXe_lis(asn_grism_file, asn_direct_file)
 
 	### change back to root directory 
 	os.chdir(figs.options['ROOT_DIR'])
@@ -195,5 +201,74 @@ def copy_over_config_files():
 	for cfile in config_files:
 		shutil.copy(cfile, '%s/CONF/' %(figs.options['ROOT_DIR']))
 
+def set_confguration_parameters():
+
+	#### Initialize parameters, update the config file in CONF
+	conf = figs.utils.ConfFile(figs.options['CONFIG_FILE'])
+
+	### need to scale the 0th order sensitivity curve
+	### if conf.params['SENSITIVITY_B'] == 'wfc3_abscal_IRg141_0th_sens.fits'.
+	### with default the 0th order contamination is being underestimated by the pipeliene
+	zeroth_list = ['wfc3_abscal_IRg141_0th_sens.fits', 'WFC3.IR.G141.0th.sens.1.fits']
+
+	if conf.params['SENSITIVITY_B'] in zeroth_list:
+
+		zeroth_file = fits.open('%s/%s' %(conf.path, conf.params['SENSITIVITY_B'])
+		zeroth_data = zeroth_file[1].data
+		sens = zeroth_data.field('SENSITIVITY')
+		err = zeroth_data.field('ERROR')
+		scale_factor = 3.6
+		sens *= scale_factor
+		err *= scale_factor
+		zeroth_file.writeto('%s/WFC3_G141_0th_SCALED.fits' %(conf.path), clobber=True)
+		conf.params['SENSITIVITY_B'] = 'WFC3_G141_0th_SCALED.fits'
+
+	##### Parameters for aXe
+	conf.params['DRZROOT'] = figs.options['ROOT_GRISM']
+	conf.params['DRZRESOLA'] = figs.options['DRZRESOLA']
+	conf.params['DRZSCALE'] = figs.options['DRZSCALE']
+	conf.params['DRZPFRAC'] = figs.options['PIXFRAC']
+    
+	#### Parameters for BEAM order extraction, all higher orders set to 10
+	#### to ensure they are not extracted.
+	conf.params['MMAG_EXTRACT_A'] = str(figs.options['LIMITING_MAGNITUDE'])
+	conf.params['MMAG_EXTRACT_B'] = str(10.0)
+	conf.params['MMAG_EXTRACT_C'] = str(10.0)
+	conf.params['MMAG_EXTRACT_D'] = str(10.0)
+	conf.params['MMAG_EXTRACT_E'] = str(10.0)
+
+	#### Contamination estimation extarction limits, set to ratio 1:10 for a 
+	#### object with limiting magnitude defined by options['LIMITING_MAGNITUDE'].
+	#### The equations are described in aXe handbook page 44.
+
+	contam_mag = -2.5*np.log(figs.options['LIMITING_CONTAM'])
+
+	MagMarkA = figs.options['LIMITING_MAGNITUDE']+ contam_mag
+	MagMarkB = figs.options['LIMITING_MAGNITUDE']+ contam_mag - 0.5
+	MagMarkC = figs.options['LIMITING_MAGNITUDE']+ contam_mag - 3.1
+	MagMarkD = figs.options['LIMITING_MAGNITUDE']+ contam_mag - 5.9
+	MagMarkE = figs.options['LIMITING_MAGNITUDE']+ contam_mag - 4.5
+
+	conf.params['MMAG_MARK_A'] = str(MagMarkA)
+	conf.params['MMAG_MARK_B'] = str(MagMarkB)
+	conf.params['MMAG_MARK_C'] = str(MagMarkC)
+	conf.params['MMAG_MARK_D'] = str(MagMarkD)
+	conf.params['MMAG_MARK_E'] = str(MagMarkE)
+
+	## Try expanding the SMFACTOR to account for different pixel scales
+	## in the sensitivity smoothing.  Bug in aXe???
+	if figs.options['GRISM_NAME'] == 'G141':
+		conf.params['SMFACTOR'] = '%.3f' %(0.128254/np.float(figs.options['DRZSCALE']))
+
+	conf.params['DQMASK'] = np.str(np.int(conf.params['DQMASK'].split()[0]) | 4096 | 2048)
+
+	#### Workaround to get 0th order contam. in the right place for the fluxcube
+	if figs.options['CONFIG_FILE'] == 'WFC3.IR.G141.V1.0.conf':
+		conf.params['BEAMB'] = '-220 220'    
+    
+        
+    conf.writeto('%s_full.conf' %(figs.options['ROOT_GRISM']))
+
+    figs.options['FINAL_AXE_CONFIG'] = '%s_full.conf'
 
 	

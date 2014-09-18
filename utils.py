@@ -150,6 +150,87 @@ class ASNFile(object):
         else:
             self.exposures.extend(new.exposures)
 
+class ConfFile(object):
+    """
+    Conf(infile='WFC3.IR.G141.V1.0.conf')
+    
+    Read an aXe configuration file for easy manipulation of the parameters.
+    """            
+    def _getPath(self):
+        """
+        _getPath()
+        
+        Figure out if we're in the root directory or in DATA
+        """
+
+        self.path = figs.options['CONFIG_FILE_DIRECTORY']
+        
+    def _processLines(self):
+        """
+        _processLines()
+        
+        Read the lines, extracting PARAMETER VALUE pairs
+        """
+        self.nlines = len(self.lines)
+        self.params = {}
+        self._pline = {}
+        for i,line in enumerate(self.lines):
+            if (line[0] is not '#') & (line.strip() is not  ''):
+                spl = line.split()
+                self.params[spl[0]] = ' '.join(spl[1:])
+                self._pline[spl[0]] = i
+        self.nkeys = self.params.keys().__len__()
+        
+    def _readLines(self):
+        """
+        _readlines()
+        """
+        #self._getPath()
+        fp = open(self.path+self.infile,'r')
+        self.lines = fp.readlines()
+        fp.close()
+        
+    def __init__(self, infile='WFC3.IR.G141.V1.0.conf', path=None):
+        self.infile = infile
+        if path is None:
+            self._getPath()
+        else:
+            if not path.startswith('/'):
+                path = os.getcwd()+'/'+path
+            self.path = path
+        self._readLines()
+        self._processLines()
+        
+    def _assignPars(self):
+        """
+        _assignPars()
+        
+        Apply parameter values to self.lines
+        """
+        import numpy as np
+        for key in self.params.keys():
+            param = self.params[key]
+            if type(param) is not type('xxx'):
+                param = np.str(param)
+            
+            #### New parameter?
+            if self._pline.has_key(key):
+                self.lines[self._pline[key]] = key + ' ' + param +'\n'
+            else:
+                self.lines.append(key + ' ' + param +'\n')
+        
+        self._processLines()
+    
+    def writeto(self, output='tmp.conf'):
+        """
+        writeto(output='tmp.conf')
+        """ 
+        #self._getPath()
+        self._assignPars()
+        fp = open(self.path+output,'w')
+        fp.writelines(self.lines)
+        fp.close()
+
 def find_fits_gz(fits_file, hard_break = True):
     """
     foo = find_fits_gz(fits_file, hard_break = True)
@@ -514,3 +595,33 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.ma.median, varfunc=np.var, axis=
             filtered_data.mask |= do * do > varfunc(filtered_data) * sig ** 2
 
     return filtered_data
+
+def make_aXe_lis(asn_grism_file, asn_direct_file):
+    """
+    status = make_aXe_lis(asn_grism_file, asn_direct_file)
+    
+    Make "inlist" file for aXe routines, with format
+    
+        grismA_flt.fits directA_flt_1.cat directA_flt.fits 0.0
+        grismB_flt.fits directB_flt_1.cat directB_flt.fits 0.0
+            
+    """
+    
+    ### get the ASN files:
+    asn_direct = ASNFile(asn_direct_file)
+    asn_grism = ASNFile(asn_grism_file)
+
+    ### get number of exposures
+    n_exposures = len(asn_grism.exposures)
+
+    ### create and open the output file:
+    outfile = asn_grism.split('_asn.fits')[0] + '_prep.lis'
+    fp = open(outfile,'w')
+    
+
+    for i in range(n_exposures):
+        fp.write('%s_flt.fits ' + %asn_grism.exposures[i]
+                 '%s_flt_1.cat ' + %asn_direct.exposures[i]
+                 '%s_flt.fits 0.0\n' %asn_direct.exposures[i]))
+
+    fp.close()
