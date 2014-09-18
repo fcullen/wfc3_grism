@@ -96,6 +96,14 @@ def reduction_script(asn_grism=None, asn_direct=None, test_run=False):
 	set_confguration_parameters()
 	figs.utils.make_aXe_lis(asn_grism_file, asn_direct_file)
 
+	### now start the first aXe routine: iolprep:
+	figs.showMessage('STAGE VII: RUNNING AXE.IOLPREP')    
+	figs.utils.iraf_flpr()
+
+	iraf.iolprep(mdrizzle_ima='%s_drz.fits' %figs.optiosn['ROOT_DIRECT'], ,
+				 input_cat='%s_drz.cat' %figs.optiosn['ROOT_DIRECT'], 
+				 dimension_in=fig.options["AXE_EDGES"])
+                 
 	### change back to root directory 
 	os.chdir(figs.options['ROOT_DIR'])
 

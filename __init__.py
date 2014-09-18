@@ -159,6 +159,11 @@ def defaultOptions():
     #### considered.
     options['LIMITING_CONTAM'] = 0.01
 
+    #### Axe extraction geometry to get objects outside the edges
+    #### of the grism images.  Currently doesn't work correctly and 
+    #### the model is offset w.r.t. the observed spectra.
+    options['AXE_EDGES'] = "300,300,0,0"
+
 # set the default options    
 defaultOptions()
 
