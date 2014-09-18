@@ -42,13 +42,13 @@ def process_grism_images(asn_grism_file):
 
 	#### generate segmentation map for each grism exposure:
 	figs.showMessage('MAKING SEGEMENTAION MAPS FOR EACH GRISM EXPOSURE')
-	make_grism_exposure_segmaps(asn_grism_file, sigma=0.5)
+	make_grism_exposure_segmaps(asn_grism_file, sigma=1.5)
 
 	#### copy over fresh flt files to do final sky subtraction:
 	figs.utils.copy_over_fresh_flt_files(figs.options['ASN_GRISM'], from_path='../RAW')
 
 
-	if figs.options['MASTER_BACKGROUND_SUBTRACTION']
+	if figs.options['MASTER_BACKGROUND_SUBTRACTION']:
 		#### do the full background subtraction on the grism exposures:
 		figs.showMessage('DOING FULL GRISM SKY SUBTRACTION')
 		asn = figs.utils.ASNFile(asn_grism_file)

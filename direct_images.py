@@ -2,7 +2,9 @@ import figs
 import os
 
 import numpy as np
+
 from astropy.io import fits
+import astropy.stats as stats
 
 def process_direct_images(asn_direct_file):
     """
@@ -49,27 +51,51 @@ def process_direct_images(asn_direct_file):
     figs.correct_shifts.align_direct_to_reference(asn_direct_file, verbose=True)
 
     ### copy over the new .flt files into the DATA directory to apply new shfits:
-    figs.showMessage('RE-RUNNING MULTIDRIZZLE WITH THE NEW SHIFTS')
+    figs.showMessage('RE-RUNNING MULTIDRIZZLE WITH THE NEW SHIFTS FOR COSMIC RAY REJECTION')
     figs.utils.copy_over_fresh_flt_files(asn_filename=figs.options['ASN_DIRECT'], from_path='../RAW')
+
+    ### first pass cosmic-ray rejection:
+    figs.multidrizzle.multidrizzle_run(asn_direct_file, 
+                                       shiftfile='%s_final_shifts.txt' %(figs.options['ROOT_DIRECT']), 
+                                       pixfrac=1.0, 
+                                       final_scale=0.128254, 
+                                       driz_cr=True,
+                                       skysub=False)
+
+    ### blot back to original exposures (now with cosmic ray rejection and background subtraction):
+    figs.showMessage('RUNNING BLOT ON DRIZZLED DIRECT IMAGE')
+    figs.multidrizzle.blot_run(asn_direct_file, 
+                               drz_file='%s_drz.fits' %(figs.options['ROOT_DIRECT']),
+                               is_grism=False)
+
+    ### generate segmentation map for each grism exposure:
+    figs.showMessage('MAKING SEGEMENTAION MAPS FOR EACH DIRECT EXPOSURE')
+    make_direct_exposure_segmaps(asn_direct_file, sigma=1.0)
+
+    ### do the background subtraction:
+    figs.showMessage('DOING FULL DIRECT IMAGE SKY SUBTRACTION')
+    asn = figs.utils.ASNFile(asn_direct_file)
+    for direct_exposure in asn.exposures:
+        direct_image_sky_subtraction(flt='%s_flt.fits' %(direct_exposure),
+                                     segmap='%s.seg.fits' %(direct_exposure))
+
+    ### final drizzle to 1/2 pixel resolution with the background subtraction:
+    figs.showMessage('FINAL MULTIDRIZZLE WITH THE NEW SHIFTS + BACKGROUND SUBTRACTION')
     figs.multidrizzle.multidrizzle_run(asn_direct_file, 
                                        shiftfile='%s_final_shifts.txt' %(figs.options['ROOT_DIRECT']),
                                        pixfrac=0.8, 
                                        final_scale=0.06, 
                                        driz_cr=False,
-                                       skysub=True)
+                                       skysub=False)
+
 
     ### now run sregister on CANDELS mosaic if using one as a detection image:
-    if figs.options['DETECTION_IMAGE'] is not None:
-      figs.showMessage('ADDING BORDER TO DRZ AND MAKING FINCAL CANDELS CUTOUT')
-      add_border_to_drz(drz_image='%s_drz.fits' %(figs.options['ROOT_DIRECT']), extension=300.)
-      figs.correct_shifts.run_sregister_for_detection_image(asn_direct_file, 
-                                                            sci_image=figs.options['DETECTION_IMAGE'],
-                                                            wht_image=figs.options['DETECTION_WHT'] )
-
-    ### at this point can perform background subtraction etc. on the direct image but
-    ### don't need to do this if using different detection image, it is enough that the
-    ### correct WCS solution has been found to align the image to CANDELS. The CANDELS images
-    ### will now be used as the detection image for the pipeline.
+    if figs.options['DETECTION_IMAGE']:
+        figs.showMessage('ADDING BORDER TO DRZ AND MAKING FINCAL CANDELS CUTOUT')
+        add_border_to_drz(drz_image='%s_drz.fits' %(figs.options['ROOT_DIRECT']), extension=500.)
+        figs.correct_shifts.run_sregister_for_detection_image(asn_direct_file, 
+                                                              sci_image=figs.options['DETECTION_IMAGE'],
+                                                              wht_image=figs.options['DETECTION_WHT'] )
 
 def add_border_to_drz(drz_image, extension=300.):
     """
@@ -78,28 +104,103 @@ def add_border_to_drz(drz_image, extension=300.):
     estimate contamination from objects outside the WFC3 Grism field of view.
     """
     
-    hdulist = fits.open(drz_image)
+    ### open the fits file:
+    drz_hdu = fits.open(drz_image, mode='update')
     
+    ### loop through the two extensions:
     for ext in 'SCI', 'WHT':
 
-        data = hdulist[ext].data
-        hdr = hdulist[ext].header
+        ### set the new x and y dimensions of the image
+        newx = drz_hdu[ext].header['NAXIS1']*0.5+extension
+        newy = drz_hdu[ext].header['NAXIS2']*0.5+extension
         
-        newx = hdr['NAXIS1']*0.5+extension
-        newy = hdr['NAXIS2']*0.5+extension
+        ### adjust the centre pixel value:
+        drz_hdu[ext].header.update('CRPIX1', newx)
+        drz_hdu[ext].header.update('CRPIX2', newy)
         
-        hdr.update('CRPIX1', newx)
-        hdr.update('CRPIX2', newy)
+        ### make the new image:
+        largeim = np.zeros((drz_hdu[ext].header['NAXIS2']+2*extension, drz_hdu[ext].header['NAXIS1']+2*extension))
+        largeim[int(extension):-int(extension),int(extension):-int(extension)]=drz_hdu[ext].data[:,:]
         
-        largeim = np.zeros((hdr['NAXIS2']+2*extension, hdr['NAXIS1']+2*extension))
-        largeim[int(extension):-int(extension),int(extension):-int(extension)]=data[:,:]
-        
-        fits.update(drz_image, largeim, hdr, ext)
+        ### assign to the fits data
+        drz_hdu[ext].data = largeim
 
+    ### write the new image to file:
+    drz_hdu.flush()
 
+def make_direct_exposure_segmaps(asn_direct, sigma=1.5):
+    """
+    make_segmap(root='ib3701ryq_flt', sigma=1)
 
+    Get a segmentation image for a flt file after creating its 
+    BLOT SCI and WHT images.
 
+    DETECT_THRESH = ANALYSIS_THRESH = sigma
+    """
 
+    ### get an ASN object:
+    asn = figs.utils.ASNFile(asn_direct)
+
+    ### set the default SExtractor parameters:
+    se = figs.sex.SExtractor()
+    se.aXeParams()
+    se.copyConvFile(grism=False)
+
+    se.options['CHECKIMAGE_TYPE'] = 'SEGMENTATION, BACKGROUND'
+    se.options['WEIGHT_TYPE']     = 'MAP_WEIGHT'
+    se.options['WEIGHT_TYPE'] = 'NONE' ### no weight map for segementation map
+    se.options['FILTER']    = 'Y'
+    se.options['BACK_TYPE']     = 'AUTO'
+    se.options['BACK_FILTERSIZE']     = '2'
+    se.options['FILTER_NAME'] = 'default.conv'
+    se.options['DETECT_THRESH']    = '%.1f' %sigma
+    se.options['ANALYSIS_THRESH']  = '%.1f' %sigma
+    se.options['MAG_ZEROPOINT'] = '%.2f' %figs.options['MAG_ZEROPOINT']
+    se.options['DETECT_MINAREA'] = '1'
+    se.overwrite = True
+
+    for exp in asn.exposures:
+
+        se.options['CATALOG_NAME']    = '%s.BLOT.SCI.cat' %(exp)
+        se.options['CHECKIMAGE_NAME'] = '%s.seg.fits, bg.fits' %(exp)
+        se.options['WEIGHT_IMAGE']    = '%s.BLOT.WHT.fits' %(exp)
+    
+        status = se.sextractImage('%s.BLOT.SCI.fits' %(exp))
+
+def direct_image_sky_subtraction(flt, segmap, sig_clip=3.0):
+    """
+    Subtract sky from direct exposure procedure is:
+
+    - mask sources with segmentation map
+    - get sky distribution from remaining pixels
+    - iterativly sigma-clip this distribution to remove outliers
+    - taken median of clipped sky distribution as the sky value across
+      the image
+    """
+    
+    ### open the fits files:
+    flt_hdu = fits.open(flt)
+    seg_hdu = fits.open(segmap)
+
+    ### get the mask for extracting sky values:
+    mask_sky = (seg_hdu[0].data == 0)
+
+    ### make a copy of the image data to work on:
+    im_data = np.copy(flt_hdu[1].data)
+
+    ### get a 1D array of the sky pixels:
+    sky_pixels = np.copy(im_data[mask_sky].flatten())
+
+    ### use sigma clipping to get the tru sky values:
+    true_sky = figs.utils.sigma_clip(sky_pixels, sig=3, iters=None)
+ 
+    ### find the median of this array:
+    med_sky = np.median(true_sky.data[np.logical_not(true_sky.mask)])
+
+    ### re-open the fits file, write new data to it:
+    flt_hdu = fits.open(flt, mode='update')
+    flt_hdu[1].data = im_data - med_sky
+    flt_hdu.flush()
 
 
 

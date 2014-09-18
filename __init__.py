@@ -120,7 +120,7 @@ def defaultOptions():
     ### the detection image and band for making source catalogue:
     options['DETECTION_IMAGE'] = '/disk1/fc/FIGS/tests/candels_mosaics/gs_all_candels_ers_udf_f160w_v0.5_drz.fits'
     options['DETECTION_WHT'] = '/disk1/fc/FIGS/tests/candels_mosaics/gs_all_candels_ers_udf_f160w_v0.5_wht.fits'
-    optiosn['DETECTION_BAND'] = 'F160W'
+    options['DETECTION_BAND'] = 'F160W'
     options['DETECTION_MAG_ZEROPOINT'] = 25.95
     options['DETECTION_FILTWAVE'] = 1535.
     options['USE_DETECTION_IMAGE_FOR_ANALYSIS'] = True

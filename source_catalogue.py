@@ -5,7 +5,7 @@ from pyraf import iraf
 
 def make_source_catalogue():
 
-	if figs.options['FORCE_CATALOG'] is not None:
+	if figs.options['PRE_MADE_INPUT_CATALOGUE'] is not None:
 
 		### check there's an accompanying segmentation image:
 		check_segmentation_image()

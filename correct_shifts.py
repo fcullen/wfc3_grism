@@ -67,7 +67,7 @@ def run_sregister_for_detection_image(asn_direct_file, sci_image, wht_image):
 	images = [sci_image, wht_image]
 	extensions = ['SCI', 'WHT']
 
-	for im, ext in zip(images, extensions)
+	for im, ext in zip(images, extensions):
 
 		### iraf flpr()
 		figs.utils.iraf_flpr()
@@ -77,12 +77,12 @@ def run_sregister_for_detection_image(asn_direct_file, sci_image, wht_image):
 
 		### remove previous versions if they exist:
 		try:
-			os.remove('%s_drz.fits' %(root))
+			os.remove('%s_detection_%s.fits' %(figs.options['DETECTION_BAND'], ext))
 		except:
 			pass
 
 		try:
-			os.remove('%s_wht.fits' %(root))
+			os.remove('%s_detection_%s.fits' %(figs.options['DETECTION_BAND'], ext))
 		except:
 			pass
 
@@ -90,13 +90,11 @@ def run_sregister_for_detection_image(asn_direct_file, sci_image, wht_image):
 		### sregister crashes once it has completed when attempting
 		### to delete files it creates. By ignoring this error there is
 		### no change to the actual output:
-		try:
-			iraf.sregister(input=im,
-						   reference='%s_drz.fits[%s]' %(root, ext),
-						   output='%s_detection_%s.fits' %(figs.options['DETECTION_BAND'], ext),
-						   verbose=False)
-		except:
-			pass
+		iraf.sregister(input=im,
+					   reference='%s_drz.fits[SCI]' %(root),
+					   output='%s_detection_%s.fits' %(figs.options['DETECTION_BAND'], ext),
+					   verbose=False)
+
 
 
 	### cleanup files:
