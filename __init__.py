@@ -17,6 +17,7 @@ import direct_images
 import grism_images
 import correct_shifts
 import source_catalogue
+import contamination
 
 ### the main program:
 import pipeline
@@ -134,6 +135,12 @@ def defaultOptions():
     options['DETECT_MINAREA'] = 5 ## Default 2.5
     options['BACK_SIZE'] = 256.
     options['DEBLEND_MINCONT'] = 0.01
+
+    ### bands for the contamination estimation:
+    options['FLUXCUBE_FILTERS_DIR'] = '/disk1/fc/FIGS/tests/candels_mosaics'
+    options['FLUXCUBE_FILTERS'] = [['/disk1/fc/FIGS/tests/candels_mosaics/gs_all_candels_ers_udf_f105w_v0.5_drz.fits', 'F125W', 1248.6, 26.23],
+                                 ['/disk1/fc/FIGS/tests/candels_mosaics/gs_all_candels_ers_udf_f125w_v0.5_drz.fits', 'F160W', 1536.9, 25.95]]
+                                 ['/disk1/fc/FIGS/tests/candels_mosaics/gs_all_candels_ers_udf_f160w_v0.5_drz.fits', 'F105W', 1055.2, 26.27]]
 
 # set the default options    
 defaultOptions()
