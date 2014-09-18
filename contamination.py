@@ -145,6 +145,25 @@ def register_fluxcube_images(fluxcube_filters):
         except:
             pass
 
+def make_zeropoint_file(fluxcube_filters):
+    """
+    Create the zeropoints.lis file needed to input to the fluxcube routine
+    """
+
+    ### open the file:
+    outfile = open('zeropoints.lis','w')
+
+    root = figs.options['ROOT_DIRECT']
+
+    ### generate the lines:
+    lines=[]
+    for ib, band in enumerate(fluxcube_filters):
+        lines.append('%s_drz.fits, %6.1f, %5.2f\n' %(band[1], band[2], band[3]))
+   
+    ### write lines to file and close:
+    outfile.writelines(lines)
+    outfile.close()
+
 def setup_fluxcube():
     """
     Sets up all things needed for the aXe fluxcube task:
@@ -152,8 +171,14 @@ def setup_fluxcube():
     -> make the file with zeropoints etc ..
     """
 
-    ### get the fluxcube bans
+    ### get the fluxcube filters
     fluxcube_filters = figs.options['FLUXCUBE_FILTERS']
+
+    ### register the images to the pointing:
     register_fluxcube_images(fluxcube_filters)
+
+    ### make the zeropoint file:
+    make_zeropoint_file(fluxcube_filters)
+
 
     
