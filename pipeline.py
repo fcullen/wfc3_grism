@@ -100,9 +100,9 @@ def reduction_script(asn_grism=None, asn_direct=None, test_run=False):
 	figs.showMessage('STAGE VII: RUNNING AXE.IOLPREP')    
 	figs.utils.iraf_flpr()
 
-	iraf.iolprep(mdrizzle_ima='%s_drz.fits' %figs.optiosn['ROOT_DIRECT'], ,
-				 input_cat='%s_drz.cat' %figs.optiosn['ROOT_DIRECT'], 
-				 dimension_in=fig.options["AXE_EDGES"])
+	iraf.iolprep(mdrizzle_ima='%s_drz.fits' %figs.options['ROOT_DIRECT'],
+				 input_cat='%s_drz.cat' %figs.options['ROOT_DIRECT'], 
+				 dimension_in=figs.options["AXE_EDGES"])
                  
 	### change back to root directory 
 	os.chdir(figs.options['ROOT_DIR'])
