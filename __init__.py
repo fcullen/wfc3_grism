@@ -139,8 +139,8 @@ def defaultOptions():
     ### bands for the contamination estimation:
     options['FLUXCUBE_FILTERS_DIR'] = '/disk1/fc/FIGS/tests/candels_mosaics'
     options['FLUXCUBE_FILTERS'] = [['/disk1/fc/FIGS/tests/candels_mosaics/gs_all_candels_ers_udf_f105w_v0.5_drz.fits', 'F125W', 1248.6, 26.23],
-                                 ['/disk1/fc/FIGS/tests/candels_mosaics/gs_all_candels_ers_udf_f125w_v0.5_drz.fits', 'F160W', 1536.9, 25.95]]
-                                 ['/disk1/fc/FIGS/tests/candels_mosaics/gs_all_candels_ers_udf_f160w_v0.5_drz.fits', 'F105W', 1055.2, 26.27]]
+                                   ['/disk1/fc/FIGS/tests/candels_mosaics/gs_all_candels_ers_udf_f125w_v0.5_drz.fits', 'F160W', 1536.9, 25.95],
+                                   ['/disk1/fc/FIGS/tests/candels_mosaics/gs_all_candels_ers_udf_f160w_v0.5_drz.fits', 'F105W', 1055.2, 26.27]]
 
 # set the default options    
 defaultOptions()

@@ -90,8 +90,6 @@ def reduction_script(asn_grism=None, asn_direct=None, test_run=False):
 	figs.showMessage('STAGE V: SETTING UP FLUXCUBE')
 	figs.contamination.setup_fluxcube()
 
-
-
 	### change back to root directory 
 	os.chdir(figs.options['ROOT_DIR'])
 

@@ -23,19 +23,19 @@ def register_fluxcube_images(fluxcube_filters):
     """
 
     ### get the root name:
-	root = figs.options['ROOT_DIRECT']
+    root = figs.options['ROOT_DIRECT']
     
     ### make the SExtractor files for the direct image and mosiac:
-    se = threedhst.sex.SExtractor()
+    se = figs.sex.SExtractor()
     ### Set the output parameters required for image registration 
-    ### (stored in [threedhst source]/data/imreg.param) 
+    ### (stored in [figs source]/data/imreg.param) 
     se.imregParams()
     se.copyConvFile()
     se.overwrite = True
 
     for ib, filt in enumerate(fluxcube_filters):
               
-        print 'REGISTERING: %s mosaic' %(filt[0]))
+        figs.showMessage('REGISTERING: %s' %(filt[0]))
         
         #### First find its corresponding weight file:
         wht_image = glob.glob('%s/*%s*_wht.fits' %(figs.options['FLUXCUBE_FILTERS_DIR'], filt[1].lower()))[0]
@@ -49,7 +49,6 @@ def register_fluxcube_images(fluxcube_filters):
         #### the creation of the registered mosiac image       
         iraf.unlearn('sregister')
         
- 
         #### First register the _drz.fits mosiac file
         try:
             iraf.sregister(input=filt[0],
@@ -58,13 +57,20 @@ def register_fluxcube_images(fluxcube_filters):
                            verbose=False)
         except:
             pass
-        
+
         iraf.imcopy(input='%s_drz_reg.fits' %(filt[1]), 
-                    output='%s_%s_drz.fits[SCI,1,append]' %(root, filt[1]))
+                    output='%s_drz.fits[SCI,1,append]' %(filt[1]))
         
-        #### And also register the _wht.fits mosiac file
+        ### iraf flpr()
+        figs.utils.iraf_flpr()
+
+        #### sregister is being funny about trying to delete files IT creates ITSELF, so
+        #### added a bit of a fudge to skip this error as it doesn't affect
+        #### the creation of the registered mosiac image       
+        iraf.unlearn('sregister')
+
         try:
-            iraf.sregister(input=wht_image[0],
+            iraf.sregister(input=wht_image,
             			   reference='%s_drz.fits[SCI]' %(root),
                            output='%s_wht_reg.fits' %(filt[1]),
                            verbose=False)
@@ -72,10 +78,10 @@ def register_fluxcube_images(fluxcube_filters):
             pass
         
         iraf.imcopy(input='%s_wht_reg.fits' %(filt[1]), 
-                    output='%s_%s_drz.fits[WHT,1,append]' %(root, filt[1]))     
+                    output='%s_drz.fits[WHT,1,append]' %(filt[1]))     
            
         ### iraf flpr()            
-        iraf_flpr()
+        figs.utils.iraf_flpr()
         
         ### plot histogram of object positions to check that registration has worked properly:
         ### set sextractor parameters: 
@@ -85,14 +91,19 @@ def register_fluxcube_images(fluxcube_filters):
         ### sort out the calalog for the registered image:
         se.options['CATALOG_NAME'] = 'reg.cat'
         status = se.sextractImage('%s_drz_reg.fits' %(filt[1]))
-        reg_sexCat = threedhst.sex.mySexCat('reg.cat')
+        reg_sexCat = figs.sex.mySexCat('reg.cat')
         
         ### make catalog for f140w image, need to copy out the science extension to
         ### use with sextractor:
         se.options['CATALOG_NAME'] = 'direct.cat'
-        iraf.imcopy(input='%s_drz.fits[SCI]' %(root), output='%s_SCI.fits' %(root))
+
+        if os.path.exists('./%s_SCI.fits' %(root)):
+            pass
+        else:
+            iraf.imcopy(input='%s_drz.fits[SCI]' %(root), output='%s_SCI.fits' %(root))
+
         status = se.sextractImage('%s_SCI.fits' %(root))
-        dir_sexCat = threedhst.sex.mySexCat('direct.cat')
+        dir_sexCat = figs.sex.mySexCat('direct.cat')
         
         separation = np.empty(len(dir_sexCat['X_IMAGE']))
         
@@ -108,10 +119,10 @@ def register_fluxcube_images(fluxcube_filters):
         
             separation[i] = min(sep)
         
-        fig, ax = plt.subplots(figsize=(6,6))
+        fig, ax = plt.subplots(figsize=(5,5))
         ax.minorticks_on()
-        ax.hist(separation, bins=np.arange(-1.0, 1.0, 0.05))
-        ax.set_xlabel(r'$\mathrm{Separation} $/$ $\mathrm{arcsec}$', fontsize=14)
+        ax.hist(separation, bins=np.arange(-1.0, 1.0, 0.05), histtype='step', color='k')
+        ax.set_xlabel(r'$\mathrm{Separation}$ $/$ $\mathrm{arcsec}$', fontsize=14)
         ax.set_ylabel(r'$\mathrm{N}$', fontsize=14)
         fig.savefig('./%s_separation.pdf' %(filt[1]))
             
@@ -125,6 +136,7 @@ def register_fluxcube_images(fluxcube_filters):
             os.remove('./direct_imreg.cat')
             os.remove('./%s_drz_reg.fits' %(filt[1]))
             os.remove('./%s_wht_reg.fits' %(filt[1]))
+            os.remove('./%s_SCI.fits' %(root))
             os.remove('./sregister.db')
             os.remove('./reg.cat')
             os.remove('./direct.cat')
@@ -134,14 +146,14 @@ def register_fluxcube_images(fluxcube_filters):
             pass
 
 def setup_fluxcube():
-	"""
-	Sets up all things needed for the aXe fluxcube task:
-	-> registers the CANDELS mosaic images in each filter
-	-> make the file with zeropoints etc ..
-	"""
+    """
+    Sets up all things needed for the aXe fluxcube task:
+    -> registers the CANDELS mosaic images in each filter
+    -> make the file with zeropoints etc ..
+    """
 
-	### get the fluxcube bans
-    fluxcube_filters = threedhst.options['FLUXCUBE_FILTERS']
+    ### get the fluxcube bans
+    fluxcube_filters = figs.options['FLUXCUBE_FILTERS']
     register_fluxcube_images(fluxcube_filters)
 
     
