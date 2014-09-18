@@ -163,7 +163,7 @@ class ConfFile(object):
         Figure out if we're in the root directory or in DATA
         """
 
-        self.path = figs.options['CONFIG_FILE_DIRECTORY']
+        self.path = figs.options['REDUCTION_CONFIG_FILE_DIRECTORY']
         
     def _processLines(self):
         """
@@ -186,7 +186,7 @@ class ConfFile(object):
         _readlines()
         """
         #self._getPath()
-        fp = open(self.path+self.infile,'r')
+        fp = open('%s/%s' %(self.path, self.infile),'r')
         self.lines = fp.readlines()
         fp.close()
         
@@ -615,13 +615,12 @@ def make_aXe_lis(asn_grism_file, asn_direct_file):
     n_exposures = len(asn_grism.exposures)
 
     ### create and open the output file:
-    outfile = asn_grism.split('_asn.fits')[0] + '_prep.lis'
+    outfile = asn_grism_file.split('_asn.fits')[0] + '_prep.lis'
     fp = open(outfile,'w')
     
-
     for i in range(n_exposures):
         fp.write('%s_flt.fits ' %asn_grism.exposures[i] +
                  '%s_flt_1.cat ' %asn_direct.exposures[i] +
-                 '%s_flt.fits 0.0\n' %asn_direct.exposures[i]))
+                 '%s_flt.fits 0.0\n' %asn_direct.exposures[i])
 
     fp.close()

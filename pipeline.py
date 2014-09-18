@@ -195,11 +195,11 @@ def check_flt_files_in_raw():
 
 def copy_over_config_files():
 
-	config_files = glob.glob('%s/*.fits' %(figs.options['CONFIG_FILE_DIRECTORY']))
-	config_files.extend(glob.glob('%s/*.conf' %(figs.options['CONFIG_FILE_DIRECTORY'])))
+	config_files = glob.glob('%s/*.fits' %(figs.options['GENERAL_CONFIG_FILE_DIRECTORY']))
+	config_files.extend(glob.glob('%s/*.conf' %(figs.options['GENERAL_CONFIG_FILE_DIRECTORY'])))
 
 	for cfile in config_files:
-		shutil.copy(cfile, '%s/CONF/' %(figs.options['ROOT_DIR']))
+		shutil.copy(cfile, figs.options['REDUCTION_CONFIG_FILE_DIRECTORY'])
 
 def set_confguration_parameters():
 
@@ -213,7 +213,7 @@ def set_confguration_parameters():
 
 	if conf.params['SENSITIVITY_B'] in zeroth_list:
 
-		zeroth_file = fits.open('%s/%s' %(conf.path, conf.params['SENSITIVITY_B'])
+		zeroth_file = fits.open('%s/%s' %(conf.path, conf.params['SENSITIVITY_B']))
 		zeroth_data = zeroth_file[1].data
 		sens = zeroth_data.field('SENSITIVITY')
 		err = zeroth_data.field('ERROR')
@@ -267,8 +267,8 @@ def set_confguration_parameters():
 		conf.params['BEAMB'] = '-220 220'    
     
         
-    conf.writeto('%s_full.conf' %(figs.options['ROOT_GRISM']))
+	conf.writeto('%s_full.conf' %(figs.options['ROOT_GRISM']))
 
-    figs.options['FINAL_AXE_CONFIG'] = '%s_full.conf'
+	figs.options['FINAL_AXE_CONFIG'] = '%s_full.conf'
 
 	

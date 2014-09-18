@@ -101,14 +101,19 @@ def defaultOptions():
     ### an image used to align the raw 3dhst data:
     options['ALIGN_IMAGE'] = '/disk1/fc/FIGS/tests/candels_mosaics/gs_all_candels_ers_udf_f160w_v0.5_drz.fits'
 
-    ### directory where all config files are kept:
-    options['CONFIG_FILE_DIRECTORY'] = '/disk1/fc/FIGS/tests/conf_files'
+    ### directory where all config files are kept and unchanged, copy config files from
+    ### here for a grism reduction:
+    options['GENERAL_CONFIG_FILE_DIRECTORY'] = '/disk1/fc/FIGS/tests/conf_files'
+    options['REDUCTION_CONFIG_FILE_DIRECTORY'] = '%s/CONF' %(options['ROOT_DIR'])
 
     ### configuration options
     options['CONFIG_FILE'] = 'WFC3.IR.G141.V2.0.conf'
     options['SKY_BACKGROUND'] = None
     options['DRZRESOLA'] = '46.5'
-    options['DRZSCALE'] = '0.128254'
+
+    ### parameters to input for final multidrizzle:
+    options['DRZSCALE'] = '0.06'
+    options['PIXFRAC'] = '0.8'
 
     ### location of the 3D-HST master sky backgrounds:
     options['MASTER_BACKGROUND_SUBTRACTION'] = True
@@ -147,6 +152,12 @@ def defaultOptions():
     #### DETECT_THRESH to get good segmentation images but don't want to
     #### extract spectra for all of the faint sources.
     options['LIMITING_MAGNITUDE'] = 26.
+
+    #### This determines what fraction of the flux must the contamination
+    #### exceed to be considered in the reduction. e.g if set to 0.1 then
+    #### if contamination is less than 10% of measured flux it will not be
+    #### considered.
+    options['LIMITING_CONTAM'] = 0.01
 
 # set the default options    
 defaultOptions()
