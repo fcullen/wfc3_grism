@@ -151,7 +151,32 @@ def reduction_script(asn_grism=None, asn_direct=None, test_run=False):
 				 adj_sens=figs.options['AXE_ADJ_SENS'],
 				 weights=True,
 				 sampling="drizzle")   
-                 
+    
+	### start the aXe routine: drzprep
+	figs.showMessage('STAGE X: RUNNING AXE.DRZPREP')
+
+	figs.utils.iraf_flpr() 
+
+	iraf.drzprep(inlist='%s_prep.lis' %(figs.options['ROOT_GRISM']), 
+				 configs=figs.options['FINAL_AXE_CONFIG'],
+				 opt_extr=figs.options['AXE_OPT_EXTR'], 
+				 back=False)
+
+	### start the aXe routine: axedrizzle
+	figs.showMessage('STAGE X: RUNNING AXE.AXEDRIZZLE')
+
+	figs.utils.iraf_flpr() 
+
+	iraf.axedrizzle(inlist='%s_prep.lis' %(figs.options['ROOT_GRISM']),
+					configs=figs.options['FINAL_AXE_CONFIG'],
+					infwhm=4.0,
+					outfwhm=3.0, 
+					back=False,
+					makespc=True,
+					opt_extr=threedhst.options['AXE_OPT_EXTR'],
+					adj_sens=threedhst.options['AXE_ADJ_SENS'], 
+					driz_separate=False)
+
 	### change back to root directory 
 	os.chdir(figs.options['ROOT_DIR'])
 
