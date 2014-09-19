@@ -155,6 +155,10 @@ def reduction_script(asn_grism=None, asn_direct=None, test_run=False):
 	### start the aXe routine: drzprep
 	figs.showMessage('STAGE X: RUNNING AXE.DRZPREP')
 
+	### set drizzle path here to avoid axe.axedrizzle() crashing
+	### becuase of too long file names:
+	os.environ['AXE_DRIZZLE_PATH'] = ('./DRIZZLE_%s' %figs.options['GRISM_NAME'])
+
 	figs.utils.iraf_flpr() 
 
 	iraf.drzprep(inlist='%s_prep.lis' %(figs.options['ROOT_GRISM']), 
