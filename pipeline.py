@@ -103,6 +103,26 @@ def reduction_script(asn_grism=None, asn_direct=None, test_run=False):
 	iraf.iolprep(mdrizzle_ima='%s_drz.fits' %figs.options['ROOT_DIRECT'],
 				 input_cat='%s_drz.cat' %figs.options['ROOT_DIRECT'], 
 				 dimension_in=figs.options["AXE_EDGES"])
+
+	### start the aXe routine: axeprep:
+	figs.showMessage('STAGE VIII: RUNNING AXE.AXEPREP')    
+	### cange the root directort:
+	os.chdir(figs.options['ROOT_DIR'])
+	### check first whether using the 3D-HST master skies or not:
+	if figs.options['MASTER_BACKGROUND_SUBTRACTION'] = True:
+		backgr = False
+		backim = ''
+	else:
+		backgr = True
+		backim = 'WFC3.IR.G141.sky.V1.0.fits'
+	### now run the routine:
+	figs.utils.iraf_flpr()
+	iraf.axeprep(inlist='%s_prep.lis' %(figs.options['ROOT_GRISM']),
+				 configs=figs.options['FINAL_AXE_CONFIG'],
+				 backgr=backgr, 
+				 backims=backim, 
+				 mfwhm=3.0,
+				 norm=False)
                  
 	### change back to root directory 
 	os.chdir(figs.options['ROOT_DIR'])
