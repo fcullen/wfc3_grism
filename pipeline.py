@@ -181,6 +181,9 @@ def reduction_script(asn_grism=None, asn_direct=None, test_run=False):
 					adj_sens=threedhst.options['AXE_ADJ_SENS'], 
 					driz_separate=False)
 
+	### finally make an object table:
+	figs.utils.make_object_id_table()
+
 	### change back to root directory 
 	os.chdir(figs.options['ROOT_DIR'])
 
@@ -231,8 +234,7 @@ def check_3dhst_environment(makeDirs=True):
 				   'RAW',
 				   'OUTPUT_%s' %(figs.options['GRISM_NAME']),
 				   'DRIZZLE_%s' %(figs.options['GRISM_NAME']),
-				   'CONF', 
-				   'OTHERBANDS']
+				   'CONF']
 
 	for dir in directories:
 		if not os.path.exists(dir):

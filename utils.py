@@ -624,3 +624,38 @@ def make_aXe_lis(asn_grism_file, asn_direct_file):
                  '%s_flt.fits 0.0\n' %asn_direct.exposures[i])
 
     fp.close()
+
+def make_object_id_table():
+    """
+    assumes run from the ROOT_DIR directory
+    """
+    
+    ### get out relevant parameters
+    path_spec = threedhst.options['DRIZZLE_PATH']
+    root_grism = figs.options['ROOT_GRISM']
+
+    sexcat = './DATA/%s_drz.cat' %(figs.options['ROOT_DIRECT'])
+
+    ### open the output file:
+    file_out = open('./object_id_table.dat', 'w')
+    file_out.write('#  idx  ra  dec')
+    
+    spc_hdu = fits.open('%s/%s_2_opt.SPC.fits' %(path_spec, root_grism))
+    
+    cat = threedhst.sex.mySexCat(sexcat)
+    
+    for i in range(len(spc_hdu)-1):
+        
+        ID = int(spc_hdu[i+1].header['OBJECTID'])
+        
+        num_list = cat['NUMBER']
+        ra_list = cat['X_WORLD']
+        dec_list = cat['Y_WORLD']
+        
+        for j in range(len(num_list)):
+            if(num_list[j] == ID):
+                ra = ra_list[j]
+                dec = dec_list[j]
+                file_out.write('%-15d%-15.7f%15.7f\n' %(ID, ra, dec))
+    
+    file_out.close()
