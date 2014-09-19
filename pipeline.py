@@ -109,7 +109,7 @@ def reduction_script(asn_grism=None, asn_direct=None, test_run=False):
 	### cange the root directort:
 	os.chdir(figs.options['ROOT_DIR'])
 	### check first whether using the 3D-HST master skies or not:
-	if figs.options['MASTER_BACKGROUND_SUBTRACTION'] = True:
+	if figs.options['MASTER_BACKGROUND_SUBTRACTION'] == True:
 		backgr = False
 		backim = ''
 	else:
@@ -297,6 +297,6 @@ def set_confguration_parameters():
         
 	conf.writeto('%s_full.conf' %(figs.options['ROOT_GRISM']))
 
-	figs.options['FINAL_AXE_CONFIG'] = '%s_full.conf'
+	figs.options['FINAL_AXE_CONFIG'] = '%s_full.conf' %(figs.options['ROOT_GRISM'])
 
 	
