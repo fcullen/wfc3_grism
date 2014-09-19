@@ -123,6 +123,34 @@ def reduction_script(asn_grism=None, asn_direct=None, test_run=False):
 				 backims=backim, 
 				 mfwhm=3.0,
 				 norm=False)
+
+	### start the aXe routine: axecore:
+	figs.showMessage('STAGE IX: RUNNING AXE.AXECORE')
+
+	figs.utils.iraf_flpr() 
+
+	iraf.axecore(inlist='%s_prep.lis' %(figs.options['ROOT_GRISM']), 
+				 configs=figs.options['FINAL_AXE_CONFIG'],
+				 back=False,
+				 extrfwhm=4.0, 
+				 drzfwhm=3.0, 
+				 backfwhm=4.0,
+				 slitless_geom=figs.options['FULL_EXTRACTION_GEOMETRY'], 
+				 orient=figs.options['FULL_EXTRACTION_GEOMETRY'], 
+				 exclude=False, 
+	 			 lambda_mark=figs.options['FILTWAVE'], 
+				 cont_model="fluxcube", 
+				 model_scale=4.0, 
+				 lambda_psf=figs.options['FILTWAVE'],
+				 inter_type="linear", 
+				 np=10, 
+				 interp=0, 
+				 smooth_lengt=0,
+				 smooth_fwhm=0.0,
+				 spectr=False, 
+				 adj_sens=figs.options['AXE_ADJ_SENS'],
+				 weights=True,
+				 sampling="drizzle")   
                  
 	### change back to root directory 
 	os.chdir(figs.options['ROOT_DIR'])

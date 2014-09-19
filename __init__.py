@@ -134,8 +134,8 @@ def defaultOptions():
     options['USE_DETECTION_IMAGE_FOR_ANALYSIS'] = True
 
     ### general source detection parameters:
-    options['DETECT_THRESH'] = 5     ## Default 2.5
-    options['ANALYSIS_THRESH']  = 5  ## Default 2.5
+    options['DETECT_THRESH'] = 20     ## Default 2.5
+    options['ANALYSIS_THRESH']  = 20  ## Default 2.5
     options['GRISM_NAME'] = 'G141'
     options['MAG_ZEROPOINT'] = 26.46
     options['FILTWAVE'] = 1392.
@@ -166,6 +166,16 @@ def defaultOptions():
     #### the model is offset w.r.t. the observed spectra.
     options['AXE_EDGES'] = "300,300,0,0"
 
+    #### aXe extraction geometry
+    #### currently set slitless_geom=NO, orient=NO in aXecore
+    #### to get the 2D spectra to line up with the orientation
+    #### of the direct thumbnail.
+    options['FULL_EXTRACTION_GEOMETRY'] = False
+    #### aXe adjust sensitivity - convolve grism throughput with source profile
+    options['AXE_ADJ_SENS'] = True
+    #### aXe extract with "optimal weights"
+    options['AXE_OPT_EXTR'] = True
+    
 # set the default options    
 defaultOptions()
 
