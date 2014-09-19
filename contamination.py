@@ -176,5 +176,13 @@ def setup_fluxcube():
     ### make the zeropoint file:
     make_zeropoint_file(fluxcube_filters)
 
+    ### run fcube prep:
+    iraf.fcubeprep(grism_image = '%s_drz.fits' %figs.options['ROOT_GRISM'],
+                   segm_image = '%s_seg.fits' %figs.options['ROOT_DIRECT'],
+                   filter_info = 'zeropoints.lis', 
+                   AB_zero = True, 
+                   dimension_info = figs.options["AXE_EDGES"], 
+                   interpol="poly5")
+
 
     
