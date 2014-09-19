@@ -227,7 +227,7 @@ class ConfFile(object):
         """ 
         #self._getPath()
         self._assignPars()
-        fp = open(self.path+output,'w')
+        fp = open('%s/%s' %(self.path, output),'w')
         fp.writelines(self.lines)
         fp.close()
 
@@ -614,8 +614,8 @@ def make_aXe_lis(asn_grism_file, asn_direct_file):
     ### get number of exposures
     n_exposures = len(asn_grism.exposures)
 
-    ### create and open the output file:
-    outfile = asn_grism_file.split('_asn.fits')[0] + '_prep.lis'
+    ### create and open the output file, need to be saved in the root directory:
+    outfile = '%s/%s_prep.lis' %(figs.options['ROOT_DIR'], asn_grism_file.split('_asn.fits')[0])
     fp = open(outfile,'w')
     
     for i in range(n_exposures):
