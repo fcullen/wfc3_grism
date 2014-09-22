@@ -177,8 +177,8 @@ def reduction_script(asn_grism=None, asn_direct=None, test_run=False):
 					outfwhm=3.0, 
 					back=False,
 					makespc=True,
-					opt_extr=threedhst.options['AXE_OPT_EXTR'],
-					adj_sens=threedhst.options['AXE_ADJ_SENS'], 
+					opt_extr=figs.options['AXE_OPT_EXTR'],
+					adj_sens=figs.options['AXE_ADJ_SENS'], 
 					driz_separate=False)
 
 	### finally make an object table:
@@ -255,8 +255,7 @@ def cleanup_reduction_directories():
 				   'RAW',
 				   'OUTPUT_%s' %(figs.options['GRISM_NAME']),
 				   'DRIZZLE_%s' %(figs.options['GRISM_NAME']),
-				   'CONF', 
-				   'OTHERBANDS']
+				   'CONF']
 
 	for dir in directories:
 		if os.path.exists(dir):
@@ -284,6 +283,9 @@ def copy_over_config_files():
 
 	config_files = glob.glob('%s/*.fits' %(figs.options['GENERAL_CONFIG_FILE_DIRECTORY']))
 	config_files.extend(glob.glob('%s/*.conf' %(figs.options['GENERAL_CONFIG_FILE_DIRECTORY'])))
+
+	### set the reduction configuration directory here:
+	figs.options['REDUCTION_CONFIG_FILE_DIRECTORY'] = '%s/CONF' %(figs.options['ROOT_DIR'])
 
 	for cfile in config_files:
 		shutil.copy(cfile, figs.options['REDUCTION_CONFIG_FILE_DIRECTORY'])

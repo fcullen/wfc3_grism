@@ -108,7 +108,7 @@ def make_grism_shiftfile(asn_grism_file):
 		sf.yshift = []
 		sf.rotate = []
 		sf.scale = []
-			for i,exp in enumerate(asn.exposures):
+		for i,exp in enumerate(asn.exposures):
 			sf.images.append(exp+'_flt.fits')
 			sf.xshift.append(xs)
 			sf.yshift.append(ys)

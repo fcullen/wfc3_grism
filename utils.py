@@ -618,10 +618,18 @@ def make_aXe_lis(asn_grism_file, asn_direct_file):
     outfile = '%s/%s_prep.lis' %(figs.options['ROOT_DIR'], asn_grism_file.split('_asn.fits')[0])
     fp = open(outfile,'w')
     
-    for i in range(n_exposures):
-        fp.write('%s_flt.fits ' %asn_grism.exposures[i] +
-                 '%s_flt_1.cat ' %asn_direct.exposures[i] +
-                 '%s_flt.fits 0.0\n' %asn_direct.exposures[i])
+    ### first check if 1:1 correspondance between direct and grism exposures:
+    if len(asn_direct.exposures) == len(asn_grism.exposures):
+        for i in range(n_exposures):
+            fp.write('%s_flt.fits ' %asn_grism.exposures[i] +
+                     '%s_flt_1.cat ' %asn_direct.exposures[i] +
+                     '%s_flt.fits 0.0\n' %asn_direct.exposures[i])
+    else:
+        ### just use the first direct exposure for the catalogue:
+        for i in range(n_exposures):
+            fp.write('%s_flt.fits ' %asn_grism.exposures[i] +
+                     '%s_flt_1.cat ' %asn_direct.exposures[0] +
+                     '%s_flt.fits 0.0\n' %asn_direct.exposures[0])
 
     fp.close()
 
@@ -631,7 +639,7 @@ def make_object_id_table():
     """
     
     ### get out relevant parameters
-    path_spec = figs.options['DRIZZLE_PATH']
+    path_spec = figs.options['AXE_DRIZZLE_PATH']
     root_grism = figs.options['ROOT_GRISM']
 
     sexcat = './DATA/%s_drz.cat' %(figs.options['ROOT_DIRECT'])

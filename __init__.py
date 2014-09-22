@@ -104,7 +104,6 @@ def defaultOptions():
     ### directory where all config files are kept and unchanged, copy config files from
     ### here for a grism reduction:
     options['GENERAL_CONFIG_FILE_DIRECTORY'] = '/disk1/fc/FIGS/tests/conf_files'
-    options['REDUCTION_CONFIG_FILE_DIRECTORY'] = '%s/CONF' %(options['ROOT_DIR'])
 
     ### configuration options
     options['CONFIG_FILE'] = 'WFC3.IR.G141.V2.0.conf'
