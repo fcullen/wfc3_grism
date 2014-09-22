@@ -631,18 +631,18 @@ def make_object_id_table():
     """
     
     ### get out relevant parameters
-    path_spec = threedhst.options['DRIZZLE_PATH']
+    path_spec = figs.options['DRIZZLE_PATH']
     root_grism = figs.options['ROOT_GRISM']
 
     sexcat = './DATA/%s_drz.cat' %(figs.options['ROOT_DIRECT'])
 
     ### open the output file:
     file_out = open('./object_id_table.dat', 'w')
-    file_out.write('#  idx  ra  dec')
+    file_out.write('#  idx  ra  dec\n')
     
     spc_hdu = fits.open('%s/%s_2_opt.SPC.fits' %(path_spec, root_grism))
     
-    cat = threedhst.sex.mySexCat(sexcat)
+    cat = figs.sex.mySexCat(sexcat)
     
     for i in range(len(spc_hdu)-1):
         

@@ -26,7 +26,7 @@ def process_grism_images(asn_grism_file):
 	make_grism_shiftfile(asn_grism_file)
 
 	#### drizzle them together. first pass use native pixel scale for cosmic ray rejection:
-	figs.showMessage('RUNNING MULTIDRIZZLE ON DIRECT IMAGES')
+	figs.showMessage('RUNNING MULTIDRIZZLE ON GRISM IMAGES')
 	figs.multidrizzle.multidrizzle_run(asn_grism_file, 
 									   shiftfile='%s_final_shifts.txt' %(figs.options['ROOT_GRISM']), 
 									   pixfrac=1.0, 
