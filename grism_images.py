@@ -96,6 +96,26 @@ def make_grism_shiftfile(asn_grism_file):
 		#### change the image names in the shiftfile to the grism exposures
 		for i,exp in enumerate(asn.exposures):
 			sf.images[i] = exp+'_flt.fits'
+	else:
+		#### Have different number of grism and direct images.  Just use the 
+		#### shifts/rotations for the first direct image
+		xs = sf.xshift[0]
+		ys = sf.yshift[0]
+		rot = sf.rotate[0]
+		scl = sf.scale[0]
+		sf.images = []
+		sf.xshift = []
+		sf.yshift = []
+		sf.rotate = []
+		sf.scale = []
+			for i,exp in enumerate(asn.exposures):
+			sf.images.append(exp+'_flt.fits')
+			sf.xshift.append(xs)
+			sf.yshift.append(ys)
+			sf.rotate.append(rot)
+			sf.scale.append(scl)
+
+		sf.nrows = len(asn.exposures)
         
 	#### Write the new shiftfile
 	sf.write('%s_final_shifts.txt' %(figs.options['ROOT_GRISM']))
