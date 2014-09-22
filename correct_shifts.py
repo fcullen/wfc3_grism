@@ -176,11 +176,13 @@ def run_tweakshifts_on_direct_exposures(asn_direct_file, verbose=True):
 							fitbox = 7,
 							Stdout=1)
 
-def align_direct_to_reference(asn_direct_file, verbose=True, n_iter=5):
+def align_direct_to_reference(verbose=True, n_iter=5, drizzled_image=True):
 	"""
 	Use iraf software geomap to get shift solutions between images.
 
 	n_iter = number of times to iterate over the alignment routines
+	drizzled_image = boolean to distinguish between a drizzled image used for alignment,
+	                 in which case the shifts must be transferred back to oiginal flt.
 	"""
 
 	### get the root name:
@@ -320,25 +322,27 @@ def align_direct_to_reference(asn_direct_file, verbose=True, n_iter=5):
 		except:
 			pass
 
-	#### shifts measured in drz frame.  Translate to the flt frame:
-	drz = fits.open('%s_drz.fits' %(root))
+	if drizzled_image:
+		#### shifts measured in drz frame.  Translate to the flt frame:
+		drz = fits.open('%s_drz.fits' %(root))
 
-	#### Get reference angle from first image in the ASN file:
-	asn = figs.utils.ASNFile('%s_asn.fits' %(root))
-	alpha = (180. - fits.getheader(asn.exposures[0]+'_flt.fits', 1)['PA_APER']) / (360. * 2 * np.pi)
+		#### Get reference angle from first image in the ASN file:
+		asn = figs.utils.ASNFile('%s_asn.fits' %(root))
+		alpha = (180. - fits.getheader(asn.exposures[0]+'_flt.fits', 1)['PA_APER']) / (360. * 2 * np.pi)
 
-	### Get the drizzle scale from the MultiDrizzle '.run' file:
-	for line in open('%s.run' %(root),'r'):
-		if line.startswith('drizzle.scale'):
-			drizzle_scale = line.split()[2]
+		### Get the drizzle scale from the MultiDrizzle '.run' file:
+		for line in open('%s.run' %(root),'r'):
+			if line.startswith('drizzle.scale'):
+				drizzle_scale = line.split()[2]
 
-	print drizzle_scale
+		print drizzle_scale
 
-	### get the equivalent shifts in the FLT frames:
-	xsh = (xshift*np.cos(alpha) - yshift*np.sin(alpha))*np.float(drizzle_scale)
-	ysh = (xshift*np.sin(alpha) + yshift*np.cos(alpha))*np.float(drizzle_scale)
+		### get the equivalent shifts in the FLT frames:
+		xsh = (xshift*np.cos(alpha) - yshift*np.sin(alpha))*np.float(drizzle_scale)
+		ysh = (xshift*np.sin(alpha) + yshift*np.cos(alpha))*np.float(drizzle_scale)
 
-	print 'Final shift:', xsh, ysh, drz[1].header['PA_APER']
+		print 'Final shift:', xsh, ysh, drz[1].header['PA_APER']
+
 	fp = open('%s_align.info' %(root),'w')
 	fp.write('%s %8.3f %8.3f %8.3f\n' %(align_image, xsh, ysh, rot)) 
 	fp.close()

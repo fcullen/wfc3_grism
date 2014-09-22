@@ -6,6 +6,19 @@ import numpy as np
 from astropy.io import fits
 import astropy.stats as stats
 
+import shutil
+
+def process_single_direct_image(direct_flt):
+
+    ### re-name the _flt file as a fake _drz file to use
+    ### in the correct_shifts.align_direct_to_reference() routine:
+    shutil.move(direct_flt, '%s_drz.fits' %(fits.options['ROOT_DIRECT']))
+
+    ### align to the reference mosaic:
+    figs.correct_shifts.align_direct_to_reference(verbose=True, n_iter=5, drizzled_image=False)
+
+
+
 def process_direct_images(asn_direct_file):
     """
     Proccess the direct images in a grism pointing. The steps are:
@@ -48,7 +61,7 @@ def process_direct_images(asn_direct_file):
 
     ### align dirzzled image to reference CANDELS mosaic:
     figs.showMessage('ALIGNING DIRECT IMAGE TO CANDELS')
-    figs.correct_shifts.align_direct_to_reference(asn_direct_file, verbose=True)
+    figs.correct_shifts.align_direct_to_reference(verbose=True)
 
     ### copy over the new .flt files into the DATA directory to apply new shfits:
     figs.showMessage('RE-RUNNING MULTIDRIZZLE WITH THE NEW SHIFTS FOR COSMIC RAY REJECTION')

@@ -28,16 +28,19 @@ def reduction_script(asn_grism=None, asn_direct=None, test_run=False):
 	"""
 
 	#### first exit if no input files are supplied:
-	if not asn_grism:
+	if asn_grism is None:
 	    figs.showMessage("No ASN grism file supplied",warn=True)
 	    return False
-	if not asn_direct:
-	    figs.showMessage("No ASN driect file supplied", warn=True)
-	    return False
+	if not asn_direct is None:
+	    figs.showMessage("No ASN driect file supplied: Using single _flt image for aligment", warn=True)
+	    if not figs.options['SINGLE_FLT_DIRECT']:
+	    	figs.showMessage("No direct image for alignment. Shutdown", warn=True)
+	    	return False
 
 	### make holders for the original ASN filenames used for copying
 	### over the original files:
-	figs.options['ASN_DIRECT'] = asn_direct
+	if asn_direct:
+		figs.options['ASN_DIRECT'] = asn_direct
 	figs.options['ASN_GRISM'] = asn_grism
 
 	figs.showMessage('STAGE I: PREPARING ENVIRONMENT, DIRECTORS AND FILES FOR REDUCTION')
@@ -64,133 +67,143 @@ def reduction_script(asn_grism=None, asn_direct=None, test_run=False):
 	os.chdir('./DATA')
 
 	#### copy over the ./RAW files into the DATA directory:
-	figs.utils.copy_over_fresh_flt_files(asn_filename=figs.options['ASN_DIRECT'], from_path='../RAW')
+	if asn_direct:
+		figs.utils.copy_over_fresh_flt_files(asn_filename=figs.options['ASN_DIRECT'], from_path='../RAW')
+	else:
+		shutil.copy('../RAW/%s' %(figs.options['SINGLE_FLT_DIRECT'], './')
 	figs.utils.copy_over_fresh_flt_files(asn_filename=figs.options['ASN_GRISM'], from_path='../RAW')
 
 	#### adjust the target names for the grism and direct files
-	asn_direct_file = figs.utils.make_targname_asn(asn_direct)
+	if asn_direct:
+		asn_direct_file = figs.utils.make_targname_asn(asn_direct)
 	asn_grism_file = figs.utils.make_targname_asn(asn_grism)
 
 	### get rootnames of the grism and direct files:
-	figs.options['ROOT_DIRECT'] = asn_direct_file.split('_asn.fits')[0]
 	figs.options['ROOT_GRISM'] = asn_grism_file.split('_asn.fits')[0]
-
+	if asn_direct:
+		figs.options['ROOT_DIRECT'] = asn_direct_file.split('_asn.fits')[0]
+	else:
+		figs.options['ROOT_DIRECT'] = '%s-%s' %(figs.options['ROOT_GRISM'][:-5], figs.options['SINGLE_FLT_FILTER'])
+	
 	### process the direct exposures:
 	figs.showMessage('STAGE II: PREPARE DIRECT IMAGES')
-	figs.direct_images.process_direct_images(asn_direct_file)
+	if asn_direct:
+		figs.direct_images.process_direct_images(asn_direct_file)
+	else:
+		figs.direct_images.process_single_direct_image(figs.options['SINGLE_FLT_DIRECT'])
 
 	### now process the grism exposures:
 	figs.showMessage('STAGE III: PREPARE GRISM IMAGES')
 	figs.grism_images.process_grism_images(asn_grism_file)
 
-	### now make the source catalog for extraction:
-	figs.showMessage('STAGE IV: MAKING SOURCE CATALOGUE')
-	figs.source_catalogue.make_source_catalogue()
+	# ### now make the source catalog for extraction:
+	# figs.showMessage('STAGE IV: MAKING SOURCE CATALOGUE')
+	# figs.source_catalogue.make_source_catalogue()
 
-	### now set up files for the fluxcuve:
-	figs.showMessage('STAGE V: SETTING UP FLUXCUBE')
-	figs.contamination.setup_fluxcube()
+	# ### now set up files for the fluxcuve:
+	# figs.showMessage('STAGE V: SETTING UP FLUXCUBE')
+	# figs.contamination.setup_fluxcube()
 
-	### set up final config parameters for the grism run:
-	figs.showMessage('STAGE VI: FINAL PREPARATION: TUNING CONFIGURATION FILES, MAKING AXE LIST')
-	set_confguration_parameters()
-	figs.utils.make_aXe_lis(asn_grism_file, asn_direct_file)
+	# ### set up final config parameters for the grism run:
+	# figs.showMessage('STAGE VI: FINAL PREPARATION: TUNING CONFIGURATION FILES, MAKING AXE LIST')
+	# set_confguration_parameters()
+	# figs.utils.make_aXe_lis(asn_grism_file, asn_direct_file)
 
-	### now start the first aXe routine: iolprep:
-	figs.showMessage('STAGE VII: RUNNING AXE.IOLPREP')    
-	figs.utils.iraf_flpr()
+	# ### now start the first aXe routine: iolprep:
+	# figs.showMessage('STAGE VII: RUNNING AXE.IOLPREP')    
+	# figs.utils.iraf_flpr()
 
-	iraf.iolprep(mdrizzle_ima='%s_drz.fits' %figs.options['ROOT_DIRECT'],
-				 input_cat='%s_drz.cat' %figs.options['ROOT_DIRECT'], 
-				 dimension_in=figs.options["AXE_EDGES"])
+	# iraf.iolprep(mdrizzle_ima='%s_drz.fits' %figs.options['ROOT_DIRECT'],
+	# 			 input_cat='%s_drz.cat' %figs.options['ROOT_DIRECT'], 
+	# 			 dimension_in=figs.options["AXE_EDGES"])
 
-	### start the aXe routine: axeprep:
-	figs.showMessage('STAGE VIII: RUNNING AXE.AXEPREP')    
-	### cange the root directort:
-	os.chdir(figs.options['ROOT_DIR'])
-	### check first whether using the 3D-HST master skies or not:
-	if figs.options['MASTER_BACKGROUND_SUBTRACTION'] == True:
-		backgr = False
-		backim = ''
-	else:
-		backgr = True
-		backim = 'WFC3.IR.G141.sky.V1.0.fits'
-	### now run the routine:
-	figs.utils.iraf_flpr()
-	iraf.axeprep(inlist='%s_prep.lis' %(figs.options['ROOT_GRISM']),
-				 configs=figs.options['FINAL_AXE_CONFIG'],
-				 backgr=backgr, 
-				 backims=backim, 
-				 mfwhm=3.0,
-				 norm=False)
+	# ### start the aXe routine: axeprep:
+	# figs.showMessage('STAGE VIII: RUNNING AXE.AXEPREP')    
+	# ### cange the root directort:
+	# os.chdir(figs.options['ROOT_DIR'])
+	# ### check first whether using the 3D-HST master skies or not:
+	# if figs.options['MASTER_BACKGROUND_SUBTRACTION'] == True:
+	# 	backgr = False
+	# 	backim = ''
+	# else:
+	# 	backgr = True
+	# 	backim = 'WFC3.IR.G141.sky.V1.0.fits'
+	# ### now run the routine:
+	# figs.utils.iraf_flpr()
+	# iraf.axeprep(inlist='%s_prep.lis' %(figs.options['ROOT_GRISM']),
+	# 			 configs=figs.options['FINAL_AXE_CONFIG'],
+	# 			 backgr=backgr, 
+	# 			 backims=backim, 
+	# 			 mfwhm=3.0,
+	# 			 norm=False)
 
-	### start the aXe routine: axecore:
-	figs.showMessage('STAGE IX: RUNNING AXE.AXECORE')
+	# ### start the aXe routine: axecore:
+	# figs.showMessage('STAGE IX: RUNNING AXE.AXECORE')
 
-	figs.utils.iraf_flpr() 
+	# figs.utils.iraf_flpr() 
 
-	iraf.axecore(inlist='%s_prep.lis' %(figs.options['ROOT_GRISM']), 
-				 configs=figs.options['FINAL_AXE_CONFIG'],
-				 back=False,
-				 extrfwhm=4.0, 
-				 drzfwhm=3.0, 
-				 backfwhm=4.0,
-				 slitless_geom=figs.options['FULL_EXTRACTION_GEOMETRY'], 
-				 orient=figs.options['FULL_EXTRACTION_GEOMETRY'], 
-				 exclude=False, 
-	 			 lambda_mark=figs.options['FILTWAVE'], 
-				 cont_model="fluxcube", 
-				 model_scale=4.0, 
-				 lambda_psf=figs.options['FILTWAVE'],
-				 inter_type="linear", 
-				 np=10, 
-				 interp=0, 
-				 smooth_lengt=0,
-				 smooth_fwhm=0.0,
-				 spectr=False, 
-				 adj_sens=figs.options['AXE_ADJ_SENS'],
-				 weights=True,
-				 sampling="drizzle")   
+	# iraf.axecore(inlist='%s_prep.lis' %(figs.options['ROOT_GRISM']), 
+	# 			 configs=figs.options['FINAL_AXE_CONFIG'],
+	# 			 back=False,
+	# 			 extrfwhm=4.0, 
+	# 			 drzfwhm=3.0, 
+	# 			 backfwhm=4.0,
+	# 			 slitless_geom=figs.options['FULL_EXTRACTION_GEOMETRY'], 
+	# 			 orient=figs.options['FULL_EXTRACTION_GEOMETRY'], 
+	# 			 exclude=False, 
+	#  			 lambda_mark=figs.options['FILTWAVE'], 
+	# 			 cont_model="fluxcube", 
+	# 			 model_scale=4.0, 
+	# 			 lambda_psf=figs.options['FILTWAVE'],
+	# 			 inter_type="linear", 
+	# 			 np=10, 
+	# 			 interp=0, 
+	# 			 smooth_lengt=0,
+	# 			 smooth_fwhm=0.0,
+	# 			 spectr=False, 
+	# 			 adj_sens=figs.options['AXE_ADJ_SENS'],
+	# 			 weights=True,
+	# 			 sampling="drizzle")   
     
-	### start the aXe routine: drzprep
-	figs.showMessage('STAGE X: RUNNING AXE.DRZPREP')
+	# ### start the aXe routine: drzprep
+	# figs.showMessage('STAGE X: RUNNING AXE.DRZPREP')
 
-	### set drizzle path here to avoid axe.axedrizzle() crashing
-	### becuase of too long file names:
-	os.environ['AXE_DRIZZLE_PATH'] = ('./DRIZZLE_%s' %figs.options['GRISM_NAME'])
+	# ### set drizzle path here to avoid axe.axedrizzle() crashing
+	# ### becuase of too long file names:
+	# os.environ['AXE_DRIZZLE_PATH'] = ('./DRIZZLE_%s' %figs.options['GRISM_NAME'])
 
-	figs.utils.iraf_flpr() 
+	# figs.utils.iraf_flpr() 
 
-	iraf.drzprep(inlist='%s_prep.lis' %(figs.options['ROOT_GRISM']), 
-				 configs=figs.options['FINAL_AXE_CONFIG'],
-				 opt_extr=figs.options['AXE_OPT_EXTR'], 
-				 back=False)
+	# iraf.drzprep(inlist='%s_prep.lis' %(figs.options['ROOT_GRISM']), 
+	# 			 configs=figs.options['FINAL_AXE_CONFIG'],
+	# 			 opt_extr=figs.options['AXE_OPT_EXTR'], 
+	# 			 back=False)
 
-	### start the aXe routine: axedrizzle
-	figs.showMessage('STAGE X: RUNNING AXE.AXEDRIZZLE')
+	# ### start the aXe routine: axedrizzle
+	# figs.showMessage('STAGE X: RUNNING AXE.AXEDRIZZLE')
 
-	figs.utils.iraf_flpr() 
+	# figs.utils.iraf_flpr() 
 
-	iraf.axedrizzle(inlist='%s_prep.lis' %(figs.options['ROOT_GRISM']),
-					configs=figs.options['FINAL_AXE_CONFIG'],
-					infwhm=4.0,
-					outfwhm=3.0, 
-					back=False,
-					makespc=True,
-					opt_extr=figs.options['AXE_OPT_EXTR'],
-					adj_sens=figs.options['AXE_ADJ_SENS'], 
-					driz_separate=False)
+	# iraf.axedrizzle(inlist='%s_prep.lis' %(figs.options['ROOT_GRISM']),
+	# 				configs=figs.options['FINAL_AXE_CONFIG'],
+	# 				infwhm=4.0,
+	# 				outfwhm=3.0, 
+	# 				back=False,
+	# 				makespc=True,
+	# 				opt_extr=figs.options['AXE_OPT_EXTR'],
+	# 				adj_sens=figs.options['AXE_ADJ_SENS'], 
+	# 				driz_separate=False)
 
-	### finally make an object table:
-	figs.utils.make_object_id_table()
+	# ### finally make an object table:
+	# figs.utils.make_object_id_table()
 
-	### change back to root directory 
-	os.chdir(figs.options['ROOT_DIR'])
+	# ### change back to root directory 
+	# os.chdir(figs.options['ROOT_DIR'])
 
-	#### get end time
-	end_time = time.time()
-	total_time_minutes = (end_time - start_time) / 60.
-	figs.showMessage('FINISHED!! REDUCTION HAS TAKEN %.1f MINUTES' %(total_time_minutes))
+	# #### get end time
+	# end_time = time.time()
+	# total_time_minutes = (end_time - start_time) / 60.
+	# figs.showMessage('FINISHED!! REDUCTION HAS TAKEN %.1f MINUTES' %(total_time_minutes))
 
 def set_aXe_environment(grating='G141'):
 	"""

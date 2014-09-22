@@ -101,6 +101,10 @@ def defaultOptions():
     ### an image used to align the raw 3dhst data:
     options['ALIGN_IMAGE'] = '/disk1/fc/FIGS/tests/candels_mosaics/gs_all_candels_ers_udf_f160w_v0.5_drz.fits'
 
+    ### provide single flt image if not multiple images to drizzle etc.
+    options['SINGLE_FLT_DIRECT'] = None
+    options['SINGLE_FLT_FILTER'] = 'F125W'
+
     ### directory where all config files are kept and unchanged, copy config files from
     ### here for a grism reduction:
     options['GENERAL_CONFIG_FILE_DIRECTORY'] = '/disk1/fc/FIGS/tests/conf_files'
