@@ -12,12 +12,15 @@ def process_single_direct_image(direct_flt):
 
     ### re-name the _flt file as a fake _drz file to use
     ### in the correct_shifts.align_direct_to_reference() routine:
-    shutil.move(direct_flt, '%s_drz.fits' %(fits.options['ROOT_DIRECT']))
+    shutil.move(direct_flt, '%s_drz.fits' %(figs.options['ROOT_DIRECT']))
+
+    ### cut out a region of the CANDEL image to use to align the grism exposures:
+    figs.showMessage('CUTTING OUT CANDELS REGION TO ALIGN')
+    figs.correct_shifts.run_sregister_for_align_image(mosiac_drz=figs.options['ALIGN_IMAGE'])
 
     ### align to the reference mosaic:
+    figs.showMessage('ALIGNING DIRECT IMAGE TO CANDELS')
     figs.correct_shifts.align_direct_to_reference(verbose=True, n_iter=5, drizzled_image=False)
-
-
 
 def process_direct_images(asn_direct_file):
     """
@@ -57,7 +60,7 @@ def process_direct_images(asn_direct_file):
 
     ### cut out a region of the CANDEL image to use to align the grism exposures:
     figs.showMessage('CUTTING OUT CANDELS REGION TO ALIGN')
-    figs.correct_shifts.run_sregister_for_align_image(asn_direct_file, mosiac_drz=figs.options['ALIGN_IMAGE'])
+    figs.correct_shifts.run_sregister_for_align_image(mosiac_drz=figs.options['ALIGN_IMAGE'])
 
     ### align dirzzled image to reference CANDELS mosaic:
     figs.showMessage('ALIGNING DIRECT IMAGE TO CANDELS')

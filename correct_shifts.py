@@ -11,7 +11,7 @@ import glob
 
 import shutil
 
-def run_sregister_for_align_image(asn_direct_file, mosiac_drz):
+def run_sregister_for_align_image(mosiac_drz):
 	"""
 	Run sregister on the drizzled direct mosaic and the CANDELS mosaic to
 	cut out an area to use for aligning the images with tweakreg()
@@ -199,8 +199,6 @@ def align_direct_to_reference(verbose=True, n_iter=5, drizzled_image=True):
 	se.copyConvFile()
 	se.overwrite = True
 	se.options['CHECKIMAGE_TYPE'] = 'NONE'
-	se.options['WEIGHT_TYPE']     = 'MAP_WEIGHT'
-	se.options['WEIGHT_IMAGE']    = 'WHT.fits'
 	se.options['FILTER']    = 'Y'
 	se.options['DETECT_THRESH']    = '10' 
 	se.options['ANALYSIS_THRESH']  = '10' 
@@ -209,11 +207,23 @@ def align_direct_to_reference(verbose=True, n_iter=5, drizzled_image=True):
 	### generate the direct image catalog:
 	se.options['CATALOG_NAME']    = 'direct.cat'
 	iraf.imcopy('%s_drz.fits[SCI]' %(root), "SCI.fits", verbose=False)
-	iraf.imcopy('%s_drz.fits[WHT]' %(root), "WHT.fits", verbose=False)
+
+	## if not using drizzled image for alignment done't include
+	### a weight image:
+	if drizzled_image:
+		se.options['WEIGHT_TYPE']     = 'MAP_WEIGHT'
+		se.options['WEIGHT_IMAGE']    = 'WHT.fits'
+		iraf.imcopy('%s_drz.fits[WHT]' %(root), "WHT.fits", verbose=False)
+	else:
+		se.options['WEIGHT_TYPE']     = 'NONE'
+		se.options['WEIGHT_IMAGE']    = 'WHT.fits'
+
 	status = se.sextractImage('SCI.fits')
 
 	### generate the alignment image catalog:
 	se.options['CATALOG_NAME']    = 'align.cat'
+	se.options['WEIGHT_TYPE']     = 'NONE'
+	se.options['WEIGHT_IMAGE']    = 'WHT.fits'
 	status = se.sextractImage(align_image)
 
 	### Read the catalogs
@@ -342,21 +352,39 @@ def align_direct_to_reference(verbose=True, n_iter=5, drizzled_image=True):
 		ysh = (xshift*np.sin(alpha) + yshift*np.cos(alpha))*np.float(drizzle_scale)
 
 		print 'Final shift:', xsh, ysh, drz[1].header['PA_APER']
+	else:
+		xsh = xshift
+		ysh = yshift
 
 	fp = open('%s_align.info' %(root),'w')
 	fp.write('%s %8.3f %8.3f %8.3f\n' %(align_image, xsh, ysh, rot)) 
 	fp.close()
 
 	#### Read the shiftfile
-	shiftF = ShiftFile('%s_initial_shifts.txt' %(root))
+	if drizzled_image:
+		shiftF = ShiftFile('%s_initial_shifts.txt' %(root))
 
-	#### Apply the alignment shifts to the shiftfile
-	shiftF.xshift = list(np.array(shiftF.xshift)-xsh)
-	shiftF.yshift = list(np.array(shiftF.yshift)-ysh)
-	shiftF.rotate = list((np.array(shiftF.rotate)+rot) % 360)
-	shiftF.scale = list(np.array(shiftF.scale)*scale)
+		#### Apply the alignment shifts to the shiftfile
+		shiftF.xshift = list(np.array(shiftF.xshift)-xsh)
+		shiftF.yshift = list(np.array(shiftF.yshift)-ysh)
+		shiftF.rotate = list((np.array(shiftF.rotate)+rot) % 360)
+		shiftF.scale = list(np.array(shiftF.scale)*scale)
 
-	shiftF.write('%s_final_shifts.txt' %(root))
+		shiftF.write('%s_final_shifts.txt' %(root))
+	else:
+		### use the default shift file in figs data folder:
+		shiftF = ShiftFile('/disk1/fc/FIGS/figs/data/default_shift_file.txt')
+
+		### add the reference image as needed by multidrizzle:
+		shiftF.headerlines[1] = '# refimage: %s \n' %(align_image)
+
+		#### Apply the alignment shifts to the shiftfile
+		shiftF.xshift = [np.array(xsh)]
+		shiftF.yshift = [np.array(ysh)]
+		shiftF.rotate = [np.array(rot) % 360]
+		shiftF.scale = [np.array(scale)]
+
+		shiftF.write('%s_final_shifts.txt' %(root))
 
 class ShiftFile():
 	"""
