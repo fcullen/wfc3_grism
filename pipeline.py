@@ -31,7 +31,7 @@ def reduction_script(asn_grism=None, asn_direct=None, test_run=False):
 	if asn_grism is None:
 	    figs.showMessage("No ASN grism file supplied",warn=True)
 	    return False
-	if not asn_direct is None:
+	if asn_direct is None:
 	    figs.showMessage("No ASN driect file supplied: Using single _flt image for aligment", warn=True)
 	    if not figs.options['SINGLE_FLT_DIRECT']:
 	    	figs.showMessage("No direct image for alignment. Shutdown", warn=True)
@@ -200,6 +200,9 @@ def reduction_script(asn_grism=None, asn_direct=None, test_run=False):
 
 	### change back to root directory 
 	os.chdir(figs.options['ROOT_DIR'])
+
+	### make a file containing all the options:
+	figs.showOptions(outfile='./reduction_parameters.txt')
 
 	#### get end time
 	end_time = time.time()
