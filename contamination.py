@@ -38,7 +38,7 @@ def register_fluxcube_images(fluxcube_filters):
         figs.showMessage('REGISTERING: %s' %(filt[0]))
         
         #### First find its corresponding weight file:
-        wht_image = glob.glob('%s/*%s*_wht.fits' %(figs.options['FLUXCUBE_FILTERS_DIR'], filt[1].lower()))[0]
+        wht_image = glob.glob('%s/*%s*_wht*.fits' %(figs.options['FLUXCUBE_FILTERS_DIR'], filt[1].lower()))[0]
         print 'WEIGHT IMAGE: %s' %(wht_image)
             
         ### iraf flpr()

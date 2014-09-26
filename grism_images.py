@@ -3,6 +3,8 @@ import figs
 from astropy.io import fits
 import astropy.stats as stats
 
+import matplotlib.pyplot as plt
+
 import numpy as np
 
 import os
@@ -54,7 +56,8 @@ def process_grism_images(asn_grism_file):
 		asn = figs.utils.ASNFile(asn_grism_file)
 		for grism_exposure in asn.exposures:
 			 grism_sky_subtraction(grism_flt='%s_flt.fits' %(grism_exposure),
-			 					   grism_segmap='%s.seg.fits' %(grism_exposure))
+			 					   grism_segmap='%s.seg.fits' %(grism_exposure),
+			 					   show=True)
 		### set skysub to false for the ultidrizzle tasks below:
 		skysub = False
 	else:
@@ -236,7 +239,7 @@ def find_best_sky(im_hdu, seg_hdu):
 
 	return best_sky
 
-def grism_sky_subtraction(grism_flt, grism_segmap, stat='median'):
+def grism_sky_subtraction(grism_flt, grism_segmap, stat='median', show=False):
 	"""
 	Performs the sky-subtraction on each of the grism exposures.
 
@@ -251,6 +254,23 @@ def grism_sky_subtraction(grism_flt, grism_segmap, stat='median'):
 
 	### open the segmap:
 	seg_hdu = fits.open(grism_segmap)
+
+	if show:
+
+		### plt the original exposure profile:
+		fig, axes = plt.subplots(figsize=(5.5,5.5), nrows=2, ncols=1)
+		plt.subplots_adjust(hspace=0.1)
+		for ax in axes:
+			ax.set_ylabel(r'$\mathrm{e}^-$$/\mathrm{s}$', fontsize=15)
+			ax.set_xlim(0, 1014)
+		axes[1].set_xlabel(r'$\mathrm{xpix}$', fontsize=15)
+
+		im_data = np.copy(flt_hdu[1].data)
+
+		original_profile = get_column_skyvals(im_data, seg_hdu, flat=get_flat())
+		xpix = np.arange(len(original_profile))
+
+		axes[0].plot(xpix, original_profile, color='k', ls='-.')
 
 	### find the best sky:
 	best_fit_sky_file = find_best_sky(flt_hdu, seg_hdu)
@@ -287,6 +307,16 @@ def grism_sky_subtraction(grism_flt, grism_segmap, stat='median'):
 	### get the profile along each column and subtract off the median:
 	profile = get_column_skyvals(flt_hdu[1].data, seg_hdu, flat=None)
 	flt_hdu[1].data -= np.median(profile)
+
+	if show:
+		im_data = np.copy(flt_hdu[1].data)
+		final_profile = get_column_skyvals(im_data, seg_hdu, flat=get_flat())
+		xpix = np.arange(len(original_profile))
+
+		axes[1].plot(xpix, final_profile, color='k', ls='-')
+		axes[1].set_ylim(-0.05, 0.05)
+
+		fig.savefig('%s_background.pdf' %(grism_flt.split('_flt.fits')[0]))
 
 	### multiply back out by the flat-field:
 	final_image = flt_hdu[1].data * get_flat()

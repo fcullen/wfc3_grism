@@ -176,7 +176,7 @@ def run_tweakshifts_on_direct_exposures(asn_direct_file, verbose=True):
 							fitbox = 7,
 							Stdout=1)
 
-def align_direct_to_reference(verbose=True, n_iter=5, drizzled_image=True):
+def align_direct_to_reference(verbose=True, n_iter=20, drizzled_image=True):
 	"""
 	Use iraf software geomap to get shift solutions between images.
 
@@ -200,8 +200,8 @@ def align_direct_to_reference(verbose=True, n_iter=5, drizzled_image=True):
 	se.overwrite = True
 	se.options['CHECKIMAGE_TYPE'] = 'NONE'
 	se.options['FILTER']    = 'Y'
-	se.options['DETECT_THRESH']    = '10' 
-	se.options['ANALYSIS_THRESH']  = '10' 
+	se.options['DETECT_THRESH']    = '50' 
+	se.options['ANALYSIS_THRESH']  = '50' 
 	se.options['MAG_ZEROPOINT'] = '%.2f' %(figs.options['MAG_ZEROPOINT'])
 
 	### generate the direct image catalog:
@@ -269,7 +269,7 @@ def align_direct_to_reference(verbose=True, n_iter=5, drizzled_image=True):
 		status = iraf.xyxymatch(input="direct.xy", 
 								reference="align.xy",
 								output="align.match",
-								tolerance=10, 
+								tolerance=8, 
 								separation=0, 
 								verbose=True, 
 								Stdout=1)
@@ -283,7 +283,7 @@ def align_direct_to_reference(verbose=True, n_iter=5, drizzled_image=True):
 
 		iraf.geomap(input="align.match", 
 					database="align.map",
-					fitgeometry="rscale", 
+					fitgeometry="shift", 
 					interactive=False, 
 					xmin=iraf.INDEF, 
 					xmax=iraf.INDEF, 
@@ -326,11 +326,11 @@ def align_direct_to_reference(verbose=True, n_iter=5, drizzled_image=True):
 				'drz_sci.fits','drz_wht.fits','bg.fits', 'imxymatch.1', 'sex_stderr',
 				'figs_auto.sex', 'figs_auto.param', 'default.nnw', 'default.conv']
 
-	for file in remvfiles:
-		try:
-			os.remove(file)
-		except:
-			pass
+	# for file in remvfiles:
+	# 	try:
+	# 		os.remove(file)
+	# 	except:
+	# 		pass
 
 	if drizzled_image:
 		#### shifts measured in drz frame.  Translate to the flt frame:
@@ -365,12 +365,25 @@ def align_direct_to_reference(verbose=True, n_iter=5, drizzled_image=True):
 		shiftF = ShiftFile('%s_initial_shifts.txt' %(root))
 
 		#### Apply the alignment shifts to the shiftfile
-		shiftF.xshift = list(np.array(shiftF.xshift)-xsh)
+		#### NB there's a bug in multidrizzle so that sometimes it only applies
+		#### either the x or y shift but not both.
+		#### Therefore make 2 shiftfiles, one with only x-shift, one with only
+		#### y-shift. And run multidrizlle twice for both shifts to be applied!
+		shiftF.xshift = list(np.array(shiftF.xshift)-np.array(shiftF.xshift))
 		shiftF.yshift = list(np.array(shiftF.yshift)-ysh)
 		shiftF.rotate = list((np.array(shiftF.rotate)+rot) % 360)
 		shiftF.scale = list(np.array(shiftF.scale)*scale)
 
-		shiftF.write('%s_final_shifts.txt' %(root))
+		shiftF.write('%s_final_shifts_1.txt' %(root))
+
+		#### Apply the alignment shifts to the shiftfile
+		shiftF.xshift = list(np.array(shiftF.xshift)-xsh)
+		shiftF.yshift = list(np.array(shiftF.yshift)-np.array(shiftF.yshift))
+		shiftF.rotate = list((np.array(shiftF.rotate)+rot) % 360)
+		shiftF.scale = list(np.array(shiftF.scale)*scale)
+
+		shiftF.write('%s_final_shifts_2.txt' %(root))
+
 	else:
 		### use the default shift file in figs data folder:
 		shiftF = ShiftFile('/disk1/fc/FIGS/figs/data/default_shift_file.txt')
@@ -498,8 +511,11 @@ class ShiftFile():
 		fp = open(outfile,'w')
 		fp.writelines(self.headerlines)
 		for i in range(self.nrows):
-			line = '%-20s %8.4f %8.4f %8.3f %8.3f\n' %(self.images[i],
-					self.xshift[i], self.yshift[i], self.rotate[i], self.scale[i])
+			line = '%s    %.4f  %4f    %.3f    %.3f\n' %(self.images[i],
+														 self.xshift[i], 
+														 self.yshift[i], 
+														 self.rotate[i], 
+														 self.scale[i])
 			fp.write(line)
 		fp.close()
 
