@@ -326,11 +326,11 @@ def align_direct_to_reference(verbose=True, n_iter=20, drizzled_image=True):
 				'drz_sci.fits','drz_wht.fits','bg.fits', 'imxymatch.1', 'sex_stderr',
 				'figs_auto.sex', 'figs_auto.param', 'default.nnw', 'default.conv']
 
-	# for file in remvfiles:
-	# 	try:
-	# 		os.remove(file)
-	# 	except:
-	# 		pass
+	for file in remvfiles:
+		try:
+			os.remove(file)
+		except:
+			pass
 
 	if drizzled_image:
 		#### shifts measured in drz frame.  Translate to the flt frame:
@@ -374,7 +374,7 @@ def align_direct_to_reference(verbose=True, n_iter=20, drizzled_image=True):
 		shiftF.rotate = list((np.array(shiftF.rotate)+rot) % 360)
 		shiftF.scale = list(np.array(shiftF.scale)*scale)
 
-		shiftF.write('%s_final_shifts_1.txt' %(root))
+		shiftF.write('%s_final_shifts_yshift.txt' %(root))
 
 		#### Apply the alignment shifts to the shiftfile
 		shiftF.xshift = list(np.array(shiftF.xshift)-xsh)
@@ -382,7 +382,7 @@ def align_direct_to_reference(verbose=True, n_iter=20, drizzled_image=True):
 		shiftF.rotate = list((np.array(shiftF.rotate)+rot) % 360)
 		shiftF.scale = list(np.array(shiftF.scale)*scale)
 
-		shiftF.write('%s_final_shifts_2.txt' %(root))
+		shiftF.write('%s_final_shifts_xshift.txt' %(root))
 
 	else:
 		### use the default shift file in figs data folder:
