@@ -3,6 +3,8 @@ import os
 
 import numpy as np
 
+import matplotlib.pyplot as plt
+
 from astropy.io import fits
 import astropy.stats as stats
 
@@ -95,7 +97,8 @@ def process_direct_images(asn_direct_file):
     asn = figs.utils.ASNFile(asn_direct_file)
     for direct_exposure in asn.exposures:
         direct_image_sky_subtraction(flt='%s_flt.fits' %(direct_exposure),
-                                     segmap='%s.seg.fits' %(direct_exposure))
+                                     segmap='%s.seg.fits' %(direct_exposure),
+                                     show=True)
 
     ### final drizzle to 1/2 pixel resolution with the background subtraction:
     figs.showMessage('FINAL MULTIDRIZZLE WITH THE NEW SHIFTS + BACKGROUND SUBTRACTION')
@@ -185,7 +188,7 @@ def make_direct_exposure_segmaps(asn_direct, sigma=1.5):
     
         status = se.sextractImage('%s.BLOT.SCI.fits' %(exp))
 
-def direct_image_sky_subtraction(flt, segmap, sig_clip=3.0):
+def direct_image_sky_subtraction(flt, segmap, sig_clip=3.0, show=True):
     """
     Subtract sky from direct exposure procedure is:
 
@@ -206,10 +209,15 @@ def direct_image_sky_subtraction(flt, segmap, sig_clip=3.0):
     ### make a copy of the image data to work on:
     im_data = np.copy(flt_hdu[1].data)
 
+    if show:
+        fig, ax = plt.subplots(figsize=(5.5, 5.5))
+        ax.hist(im_data[mask_sky].flatten(), bins=np.arange(-2.0, 2.0, 0.02), 
+                histtype='step', color='grey', lw=1.0)
+
     ### get a 1D array of the sky pixels:
     sky_pixels = np.copy(im_data[mask_sky].flatten())
 
-    ### use sigma clipping to get the tru sky values:
+    ### use sigma clipping to get the true sky values:
     true_sky = figs.utils.sigma_clip(sky_pixels, sig=3, iters=None)
  
     ### find the median of this array:
@@ -218,8 +226,15 @@ def direct_image_sky_subtraction(flt, segmap, sig_clip=3.0):
     ### re-open the fits file, write new data to it:
     flt_hdu = fits.open(flt, mode='update')
     flt_hdu[1].data = im_data - med_sky
+
     flt_hdu.flush()
 
+    if show:
+        fig, ax = plt.subplots(figsize=(5.5, 5.5))
+        final_data = im_data - med_sky
+        ax.hist(final_data[mask_sky].flatten(), bins=np.arange(-2.0, 2.0, 0.02), 
+                histtype='step', color='k', lw=1.0)
+        fig.savefig('%s_background_historgram.pdf' %(flt.split('_flt.fits')[0]))
 
 
 
