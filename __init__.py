@@ -101,6 +101,10 @@ def defaultOptions():
     ### an image used to align the raw 3dhst data:
     options['ALIGN_IMAGE'] = '/disk1/fc/FIGS/tests/candels_mosaics/gs_all_candels_ers_udf_f160w_v0.5_drz.fits'
 
+    ### the tolerance, in pixels, used for matching objects in alignment procedure,
+    ### this can be estimated by run SExtractor on images if needs be.
+    options['ALIGN_TOLERANCE'] = 20
+
     ### provide single flt image if not multiple images to drizzle etc.
     options['SINGLE_FLT_DIRECT'] = None
     options['SINGLE_FLT_FILTER'] = 'F125W'

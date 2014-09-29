@@ -203,6 +203,7 @@ def align_direct_to_reference(verbose=True, n_iter=20, drizzled_image=True):
 	se.options['DETECT_THRESH']    = '50' 
 	se.options['ANALYSIS_THRESH']  = '50' 
 	se.options['MAG_ZEROPOINT'] = '%.2f' %(figs.options['MAG_ZEROPOINT'])
+	se.options['DETECT_MINAREA'] = '100'
 
 	### generate the direct image catalog:
 	se.options['CATALOG_NAME']    = 'direct.cat'
@@ -269,7 +270,7 @@ def align_direct_to_reference(verbose=True, n_iter=20, drizzled_image=True):
 		status = iraf.xyxymatch(input="direct.xy", 
 								reference="align.xy",
 								output="align.match",
-								tolerance=8, 
+								tolerance=figs.options['ALIGN_TOLERANCE'], 
 								separation=0, 
 								verbose=True, 
 								Stdout=1)
@@ -283,7 +284,7 @@ def align_direct_to_reference(verbose=True, n_iter=20, drizzled_image=True):
 
 		iraf.geomap(input="align.match", 
 					database="align.map",
-					fitgeometry="shift", 
+					fitgeometry="rscale", 
 					interactive=False, 
 					xmin=iraf.INDEF, 
 					xmax=iraf.INDEF, 
