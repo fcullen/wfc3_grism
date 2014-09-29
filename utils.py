@@ -342,6 +342,10 @@ def get_package_data(dataname):
 
 def iraf_flpr():
 
+    ### Reset the IRAF cache.
+    ### Obviously this needs to be done three times
+    ### becuase IRAF is such a sweet and intuitive piece of
+    ### software.
     iraf.flpr()
     iraf.flpr()
     iraf.flpr()
