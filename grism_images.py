@@ -1,4 +1,4 @@
-import figs
+import wfc3_grism
 
 from astropy.io import fits
 import astropy.stats as stats
@@ -24,37 +24,37 @@ def process_grism_images(asn_grism_file):
 	"""
 
 	### first make a shiftfile for the grism exposures based on the direct shiftfile
-	figs.showMessage("MAKING GRISM SHIFTFILE")
+	wfc3_grism.showMessage("MAKING GRISM SHIFTFILE")
 	make_grism_shiftfile(asn_grism_file)
 
 	#### drizzle them together. first pass use native pixel scale for cosmic ray rejection:
 	#### also just use one of the shift files (x or y not really importrant here)
-	figs.showMessage('RUNNING MULTIDRIZZLE ON GRISM IMAGES')
-	figs.multidrizzle.multidrizzle_run(asn_grism_file, 
-									   shiftfile='%s_final_shifts_xshift.txt' %(figs.options['ROOT_GRISM']), 
+	wfc3_grism.showMessage('RUNNING MULTIDRIZZLE ON GRISM IMAGES')
+	wfc3_grism.multidrizzle.multidrizzle_run(asn_grism_file, 
+									   shiftfile='%s_final_shifts_xshift.txt' %(wfc3_grism.options['ROOT_GRISM']), 
 									   pixfrac=1.0, 
 									   final_scale=0.128254, 
 									   driz_cr=True,
 									   skysub=True)
 
 	#### blot back to original exposures (now with cosmic ray rejection and background subtraction):
-	figs.showMessage('RUNNING BLOT ON DRIZZLED GRISM IMAGE')
-	figs.multidrizzle.blot_run(asn_grism_file, 
-							   drz_file='%s_drz.fits' %(figs.options['ROOT_GRISM']),
+	wfc3_grism.showMessage('RUNNING BLOT ON DRIZZLED GRISM IMAGE')
+	wfc3_grism.multidrizzle.blot_run(asn_grism_file, 
+							   drz_file='%s_drz.fits' %(wfc3_grism.options['ROOT_GRISM']),
 							   is_grism=True)
 
 	#### generate segmentation map for each grism exposure:
-	figs.showMessage('MAKING SEGEMENTAION MAPS FOR EACH GRISM EXPOSURE')
-	make_grism_exposure_segmaps(asn_grism_file, sigma=1.5)
+	wfc3_grism.showMessage('MAKING SEGEMENTAION MAPS FOR EACH GRISM EXPOSURE')
+	make_grism_exposure_segmaps(asn_grism_file, sigma=5.5)
 
 	#### copy over fresh flt files to do final sky subtraction:
-	figs.utils.copy_over_fresh_flt_files(figs.options['ASN_GRISM'], from_path='../RAW')
+	wfc3_grism.utils.copy_over_fresh_flt_files(wfc3_grism.options['ASN_GRISM'], from_path='../RAW')
 
 
-	if figs.options['MASTER_BACKGROUND_SUBTRACTION']:
+	if wfc3_grism.options['MASTER_BACKGROUND_SUBTRACTION']:
 		#### do the full background subtraction on the grism exposures:
-		figs.showMessage('DOING FULL GRISM SKY SUBTRACTION')
-		asn = figs.utils.ASNFile(asn_grism_file)
+		wfc3_grism.showMessage('DOING FULL GRISM SKY SUBTRACTION')
+		asn = wfc3_grism.utils.ASNFile(asn_grism_file)
 		for grism_exposure in asn.exposures:
 			 grism_sky_subtraction(grism_flt='%s_flt.fits' %(grism_exposure),
 			 					   grism_segmap='%s.seg.fits' %(grism_exposure),
@@ -68,9 +68,9 @@ def process_grism_images(asn_grism_file):
 
 	#### clean once more for cosmic rays and then drizzle to final resolution, skip background subtraction
 	#### apply the xshifts:
-	figs.showMessage('RE-RUNNING MULTIDRIZZLE WITH BACKGROUND SUBTRACTED GRISM EXPOSURES')
-	figs.multidrizzle.multidrizzle_run(asn_grism_file, 
-									   shiftfile='%s_final_shifts_xshift.txt' %(figs.options['ROOT_GRISM']), 
+	wfc3_grism.showMessage('RE-RUNNING MULTIDRIZZLE WITH BACKGROUND SUBTRACTED GRISM EXPOSURES')
+	wfc3_grism.multidrizzle.multidrizzle_run(asn_grism_file, 
+									   shiftfile='%s_final_shifts_xshift.txt' %(wfc3_grism.options['ROOT_GRISM']), 
 									   pixfrac=1.0, 
 									   final_scale=0.128254, 
 									   driz_cr=True,
@@ -78,8 +78,8 @@ def process_grism_images(asn_grism_file):
 
 	#### finally drizzle to the desired resolution
 	#### apply the y-shifts:
-	figs.multidrizzle.multidrizzle_run(asn_grism_file, 
-									   shiftfile='%s_final_shifts_yshift.txt' %(figs.options['ROOT_GRISM']), 
+	wfc3_grism.multidrizzle.multidrizzle_run(asn_grism_file, 
+									   shiftfile='%s_final_shifts_yshift.txt' %(wfc3_grism.options['ROOT_GRISM']), 
 									   pixfrac=0.8, 
 									   final_scale=0.06, 
 									   driz_cr=False,
@@ -99,8 +99,8 @@ def make_grism_shiftfile(asn_grism_file):
 	for shift_type in ['xshift', 'yshift']:
 
 		#### Read shiftfile and ASN table
-		sf = figs.correct_shifts.ShiftFile('%s_final_shifts_%s.txt' %(figs.options['ROOT_DIRECT'], shift_type))
-		asn = figs.utils.ASNFile(asn_grism_file)
+		sf = wfc3_grism.correct_shifts.ShiftFile('%s_final_shifts_%s.txt' %(wfc3_grism.options['ROOT_DIRECT'], shift_type))
+		asn = wfc3_grism.utils.ASNFile(asn_grism_file)
 	    
 		if sf.nrows == len(asn.exposures):
 			#### Assume one direct image for each grism images, so just
@@ -129,7 +129,7 @@ def make_grism_shiftfile(asn_grism_file):
 			sf.nrows = len(asn.exposures)
 	        
 		#### Write the new shiftfile
-		sf.write('%s_final_shifts_%s.txt' %(figs.options['ROOT_GRISM'], shift_type))
+		sf.write('%s_final_shifts_%s.txt' %(wfc3_grism.options['ROOT_GRISM'], shift_type))
 
 def make_grism_exposure_segmaps(asn_grism_file, sigma=0.5):
 	"""
@@ -142,10 +142,10 @@ def make_grism_exposure_segmaps(asn_grism_file, sigma=0.5):
 	"""
 
 	### get an ASN object:
-	asn = figs.utils.ASNFile(asn_grism_file)
+	asn = wfc3_grism.utils.ASNFile(asn_grism_file)
 
 	### set the default SExtractor parameters:
-	se = figs.sex.SExtractor()
+	se = wfc3_grism.sex.SExtractor()
 	se.aXeParams()
 	se.copyConvFile(grism=True)
 
@@ -158,7 +158,7 @@ def make_grism_exposure_segmaps(asn_grism_file, sigma=0.5):
 	se.options['FILTER_NAME'] = 'grism.conv'
 	se.options['DETECT_THRESH']    = '%.1f' %sigma
 	se.options['ANALYSIS_THRESH']  = '%.1f' %sigma
-	se.options['MAG_ZEROPOINT'] = '%.2f' %figs.options['MAG_ZEROPOINT']
+	se.options['MAG_ZEROPOINT'] = '%.2f' %wfc3_grism.options['MAG_ZEROPOINT']
 	se.overwrite = True
 
 	for exp in asn.exposures:
@@ -216,7 +216,7 @@ def get_column_skyvals(im_data, seg_hdu, flat=None):
 def find_best_sky(im_hdu, seg_hdu):
 
 	### get a list of the master-sky files:
-	sky_files = figs.options['MASTER_SKIES']
+	sky_files = wfc3_grism.options['MASTER_SKIES']
 
 	### get the image profile and plot:
 	im_profile = get_column_skyvals(im_hdu[1].data, seg_hdu, flat=get_flat())
@@ -228,7 +228,7 @@ def find_best_sky(im_hdu, seg_hdu):
 	for sky_file in sky_files:
 
 		### open sky image and get profile:
-		sky_hdu = fits.open('%s/CONF/%s' %(figs.options['ROOT_DIR'], sky_file))
+		sky_hdu = fits.open('%s/CONF/%s' %(wfc3_grism.options['ROOT_DIR'], sky_file))
 		sky_profile = get_column_skyvals(sky_hdu[0].data, seg_hdu, flat=None)
 
 		### get the scale factor for sky to data:
@@ -284,7 +284,7 @@ def grism_sky_subtraction(grism_flt, grism_segmap, stat='median', show=False):
 	best_fit_sky_file = find_best_sky(flt_hdu, seg_hdu)
 
 	### open the best fitting sky:
-	sky_hdu = fits.open('%s/CONF/%s' %(figs.options['ROOT_DIR'], best_fit_sky_file))
+	sky_hdu = fits.open('%s/CONF/%s' %(wfc3_grism.options['ROOT_DIR'], best_fit_sky_file))
 
 	### re-open the grism exposure:
 	flt_hdu = fits.open(grism_flt)

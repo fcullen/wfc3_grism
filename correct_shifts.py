@@ -1,4 +1,4 @@
-import figs
+import wfc3_grism
 
 from pyraf import iraf
 
@@ -18,10 +18,10 @@ def run_sregister_for_align_image(mosiac_drz):
 	"""
 
 	### get the root name:
-	root = figs.options['ROOT_DIRECT']
+	root = wfc3_grism.options['ROOT_DIRECT']
 
 	### iraf flpr()
-	figs.utils.iraf_flpr()
+	wfc3_grism.utils.iraf_flpr()
 
 	### first unlearn the routine:
 	iraf.unlearn('sregister')
@@ -62,7 +62,7 @@ def run_sregister_for_detection_image(asn_direct_file, sci_image, wht_image):
 	"""
 
 	### get root name for the reference image:
-	root = figs.options['ROOT_DIRECT']
+	root = wfc3_grism.options['ROOT_DIRECT']
 
 	images = [sci_image, wht_image]
 	extensions = ['SCI', 'WHT']
@@ -70,19 +70,19 @@ def run_sregister_for_detection_image(asn_direct_file, sci_image, wht_image):
 	for im, ext in zip(images, extensions):
 
 		### iraf flpr()
-		figs.utils.iraf_flpr()
+		wfc3_grism.utils.iraf_flpr()
 
 		### first unlearn the routine:
 		iraf.unlearn('sregister')
 
 		### remove previous versions if they exist:
 		try:
-			os.remove('%s_detection_%s.fits' %(figs.options['DETECTION_BAND'], ext))
+			os.remove('%s_detection_%s.fits' %(wfc3_grism.options['DETECTION_BAND'], ext))
 		except:
 			pass
 
 		try:
-			os.remove('%s_detection_%s.fits' %(figs.options['DETECTION_BAND'], ext))
+			os.remove('%s_detection_%s.fits' %(wfc3_grism.options['DETECTION_BAND'], ext))
 		except:
 			pass
 
@@ -92,7 +92,7 @@ def run_sregister_for_detection_image(asn_direct_file, sci_image, wht_image):
 		### no change to the actual output:
 		iraf.sregister(input=im,
 					   reference='%s_drz.fits[SCI]' %(root),
-					   output='%s_detection_%s.fits' %(figs.options['DETECTION_BAND'], ext),
+					   output='%s_detection_%s.fits' %(wfc3_grism.options['DETECTION_BAND'], ext),
 					   verbose=False)
 
 
@@ -113,10 +113,10 @@ def run_tweakshifts_on_direct_exposures(asn_direct_file, verbose=True):
 	the direct images.
 	"""
 
-	root = figs.options['ROOT_DIRECT']
+	root = wfc3_grism.options['ROOT_DIRECT']
 
 	### iraf flpr()
-	figs.utils.iraf_flpr()
+	wfc3_grism.utils.iraf_flpr()
 
 	### unlearn the routine:
 	iraf.unlearn('tweakshifts')
@@ -186,7 +186,7 @@ def align_direct_to_reference(verbose=True, n_iter=20, drizzled_image=True):
 	"""
 
 	### get the root name:
-	root = figs.options['ROOT_DIRECT']
+	root = wfc3_grism.options['ROOT_DIRECT']
 
 	### get the alignment image which has been produced
 	### with run_sregister_to_cutout_CANDELS_region()
@@ -194,7 +194,7 @@ def align_direct_to_reference(verbose=True, n_iter=20, drizzled_image=True):
 
 	### now run SExtractor on the direct and refereance
 	### images to build up 2 catalogs:
-	se = figs.sex.SExtractor()
+	se = wfc3_grism.sex.SExtractor()
 	se.aXeParams()
 	se.copyConvFile()
 	se.overwrite = True
@@ -202,7 +202,7 @@ def align_direct_to_reference(verbose=True, n_iter=20, drizzled_image=True):
 	se.options['FILTER']    = 'Y'
 	se.options['DETECT_THRESH']    = '50' 
 	se.options['ANALYSIS_THRESH']  = '50' 
-	se.options['MAG_ZEROPOINT'] = '%.2f' %(figs.options['MAG_ZEROPOINT'])
+	se.options['MAG_ZEROPOINT'] = '%.2f' %(wfc3_grism.options['MAG_ZEROPOINT'])
 	se.options['DETECT_MINAREA'] = '100'
 
 	### generate the direct image catalog:
@@ -228,8 +228,8 @@ def align_direct_to_reference(verbose=True, n_iter=20, drizzled_image=True):
 	status = se.sextractImage(align_image)
 
 	### Read the catalogs
-	direct_cat = figs.sex.mySexCat('direct.cat')
-	align_cat = figs.sex.mySexCat('align.cat')
+	direct_cat = wfc3_grism.sex.mySexCat('direct.cat')
+	align_cat = wfc3_grism.sex.mySexCat('align.cat')
 
 	### initialize x,y shift parameters so can be 
 	### updated with each iteration, the x,y shifts 
@@ -260,7 +260,7 @@ def align_direct_to_reference(verbose=True, n_iter=20, drizzled_image=True):
 		fp.close()
 
 		### iraf flpr()
-		figs.utils.iraf_flpr()
+		wfc3_grism.utils.iraf_flpr()
 
 		### remove previous solution:
 		if iteration > 0:
@@ -270,13 +270,13 @@ def align_direct_to_reference(verbose=True, n_iter=20, drizzled_image=True):
 		status = iraf.xyxymatch(input="direct.xy", 
 								reference="align.xy",
 								output="align.match",
-								tolerance=figs.options['ALIGN_TOLERANCE'], 
+								tolerance=wfc3_grism.options['ALIGN_TOLERANCE'], 
 								separation=0, 
 								verbose=True, 
 								Stdout=1)
 
 		### iraf flpr()
-		figs.utils.iraf_flpr()
+		wfc3_grism.utils.iraf_flpr()
 
 		### now get shifts with geomap:
 		if iteration > 0:
@@ -325,7 +325,7 @@ def align_direct_to_reference(verbose=True, n_iter=20, drizzled_image=True):
 				'align.map','align.match','align.reg','align.xy',
 				'direct.cat','direct.reg','direct.xy',
 				'drz_sci.fits','drz_wht.fits','bg.fits', 'imxymatch.1', 'sex_stderr',
-				'figs_auto.sex', 'figs_auto.param', 'default.nnw', 'default.conv']
+				'wfc3_grism_auto.sex', 'wfc3_grism_auto.param', 'default.nnw', 'default.conv']
 
 	for file in remvfiles:
 		try:
@@ -338,7 +338,7 @@ def align_direct_to_reference(verbose=True, n_iter=20, drizzled_image=True):
 		drz = fits.open('%s_drz.fits' %(root))
 
 		#### Get reference angle from first image in the ASN file:
-		asn = figs.utils.ASNFile('%s_asn.fits' %(root))
+		asn = wfc3_grism.utils.ASNFile('%s_asn.fits' %(root))
 		alpha = (180. - fits.getheader(asn.exposures[0]+'_flt.fits', 1)['PA_APER']) / (360. * 2 * np.pi)
 
 		### Get the drizzle scale from the MultiDrizzle '.run' file:
@@ -386,8 +386,8 @@ def align_direct_to_reference(verbose=True, n_iter=20, drizzled_image=True):
 		shiftF.write('%s_final_shifts_xshift.txt' %(root))
 
 	else:
-		### use the default shift file in figs data folder:
-		shiftF = ShiftFile('/disk1/fc/FIGS/figs/data/default_shift_file.txt')
+		### use the default shift file in wfc3_grism data folder:
+		shiftF = ShiftFile('/disk1/fc/FIGS/wfc3_grism/data/default_shift_file.txt')
 
 		### add the reference image as needed by multidrizzle:
 		shiftF.headerlines[1] = '# refimage: %s \n' %(align_image)

@@ -24,65 +24,16 @@ import pipeline
 
 options = {}
 
-def showMessage(msg, warn=False):
-    """
-	showMessage(msg)
-    
-    Print a system message formatted like:
-    
-    ***********************************
-    *  FIGS.`module`.`function`  *
-    ***********************************
-    
-    `msg`
-    
-    ***********************************
-    """       
-    import os
-    import sys
-    import inspect
-    import time
-    
-    calling_function_name = sys._getframe(1).f_code.co_name    
-    module_name =  os.path.basename(inspect.stack()[1][1]).split('.py')[0]
-    
-    term = terminal_controller.TerminalController()
-    
-    char = '='
-    substr = 'FIGS.'+module_name+'.'+calling_function_name
-    
-    substr = char+'  '+substr+'  '+char
-    
-    NL = len(substr)
-    topbar = char*NL
-    
-    t0 = time.localtime()
-    theDate = '%0d/%0d/%0d %0d:%0d' %(t0[0],t0[1],t0[2],t0[3],t0[4])
-    N2 = (NL-2-len(theDate))/2
-    botbar = char*N2+' '+theDate+' '+char*(NL-N2-2-len(theDate))
-    
-    if warn:
-        text_color = term.WHITE
-        bg_color = term.BG_RED
-    else:
-        text_color = term.BLUE
-        bg_color = term.BG_WHITE
-        
-    print (bg_color+text_color+term.BOLD+'\n'+topbar+
-           '\n'+substr+'\n'+topbar+'\n\n'+term.NORMAL+
-           msg+'\n\n'+
-           bg_color+text_color+term.BOLD+botbar+'\n'+term.NORMAL)
-
 def defaultOptions():
     """
 	defaultOptions()
     
-    Set FIGS default options.
+    Set default options.
     
     To see the defaults, run
     
-    >>> figs.defaultOptions()
-    >>> figs.showOptions()
+    >>> wfc3_grism.defaultOptions()
+    >>> wfc3_grism.showOptions()
     """
 
     showMessage('Initializing FIGS parameters')
@@ -90,6 +41,10 @@ def defaultOptions():
     #### delete all keywords and reset
     for key in options.keys():
         pop = options.popitem()
+
+    ### the observation program the reduction is being used for,
+    ### currently either 3D-HST, FRONTIER_FIELDS, FIGS
+    options['OBS'] = '3D-HST'
     
     ### the root directory for a 3D-HST reduction:
     options['ROOT_DIR'] = '/disk1/fc/FIGS/tests/pipeline_test'
@@ -186,11 +141,60 @@ def defaultOptions():
 # set the default options    
 defaultOptions()
 
+def showMessage(msg, warn=False):
+    """
+    showMessage(msg)
+    
+    Print a system message formatted like:
+    
+    ***********************************
+    *  WFC3_GRISM.%s.%s.%s`module`.`function`  *
+    ***********************************
+    
+    `msg`
+    
+    ***********************************
+    """       
+    import os
+    import sys
+    import inspect
+    import time
+    
+    calling_function_name = sys._getframe(1).f_code.co_name    
+    module_name =  os.path.basename(inspect.stack()[1][1]).split('.py')[0]
+    
+    term = terminal_controller.TerminalController()
+    
+    char = '='
+    substr = 'WFC3_GRISM.%s.%s.%s' %(options['OBS'], module_name, calling_function_name)
+    
+    substr = char+'  '+substr+'  '+char
+    
+    NL = len(substr)
+    topbar = char*NL
+    
+    t0 = time.localtime()
+    theDate = '%0d/%0d/%0d %0d:%0d' %(t0[0],t0[1],t0[2],t0[3],t0[4])
+    N2 = (NL-2-len(theDate))/2
+    botbar = char*N2+' '+theDate+' '+char*(NL-N2-2-len(theDate))
+    
+    if warn:
+        text_color = term.WHITE
+        bg_color = term.BG_RED
+    else:
+        text_color = term.BLUE
+        bg_color = term.BG_WHITE
+        
+    print (bg_color+text_color+term.BOLD+'\n'+topbar+
+           '\n'+substr+'\n'+topbar+'\n\n'+term.NORMAL+
+           msg+'\n\n'+
+           bg_color+text_color+term.BOLD+botbar+'\n'+term.NORMAL)
+
 def showOptions(outfile=None):
     """
     printOptions()
     
-    Show the current FIGS option set.
+    Show the current option set.
     """
     import time
     
@@ -203,7 +207,7 @@ def showOptions(outfile=None):
         fp = open(outfile,"w")
         fp.write('#######################################\n')
         fp.write('###                                 ###\n')
-        fp.write('###    figs   %s      ###\n' %__version__)
+        fp.write('###       %s.%s      ###\n' %(options['OBS'], __version__))
         fp.write('###                                 ###\n')
         fp.write('###    %s     ###\n' %time.asctime())
         fp.write('###                                 ###\n')

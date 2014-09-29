@@ -1,5 +1,5 @@
 ### pipeline import:
-import figs
+import wfc3_grism
 
 ### native imports:
 import os
@@ -29,30 +29,30 @@ def reduction_script(asn_grism=None, asn_direct=None, test_run=False):
 
 	#### first exit if no input files are supplied:
 	if asn_grism is None:
-	    figs.showMessage("No ASN grism file supplied",warn=True)
+	    wfc3_grism.showMessage("No ASN grism file supplied",warn=True)
 	    return False
 	if asn_direct is None:
-	    figs.showMessage("No ASN driect file supplied: Using single _flt image for aligment", warn=True)
-	    if not figs.options['SINGLE_FLT_DIRECT']:
-	    	figs.showMessage("No direct image for alignment. Shutdown", warn=True)
+	    wfc3_grism.showMessage("No ASN driect file supplied: Using single _flt image for aligment", warn=True)
+	    if not wfc3_grism.options['SINGLE_FLT_DIRECT']:
+	    	wfc3_grism.showMessage("No direct image for alignment. Shutdown", warn=True)
 	    	return False
 
 	### make holders for the original ASN filenames used for copying
 	### over the original files:
 	if asn_direct:
-		figs.options['ASN_DIRECT'] = asn_direct
-	figs.options['ASN_GRISM'] = asn_grism
+		wfc3_grism.options['ASN_DIRECT'] = asn_direct
+	wfc3_grism.options['ASN_GRISM'] = asn_grism
 
-	figs.showMessage('STAGE I: PREPARING ENVIRONMENT, DIRECTORS AND FILES FOR REDUCTION')
+	wfc3_grism.showMessage('STAGE I: PREPARING ENVIRONMENT, DIRECTORS AND FILES FOR REDUCTION')
 
 	### make sure we're in the root directory of the reduction:
-	os.chdir(figs.options['ROOT_DIR'])
+	os.chdir(wfc3_grism.options['ROOT_DIR'])
 
 	#### timer to check how long the aXe process is taking:
 	start_time = time.time()
 
 	### set up the aXe environment:
-	set_aXe_environment(grating=figs.options['GRISM_NAME'])
+	set_aXe_environment(grating=wfc3_grism.options['GRISM_NAME'])
 
 	#### check that we're in the home directory of a 3D-HST field
 	check_3dhst_environment(makeDirs=True)
@@ -68,146 +68,146 @@ def reduction_script(asn_grism=None, asn_direct=None, test_run=False):
 
 	#### copy over the ./RAW files into the DATA directory:
 	if asn_direct:
-		figs.utils.copy_over_fresh_flt_files(asn_filename=figs.options['ASN_DIRECT'], from_path='../RAW')
+		wfc3_grism.utils.copy_over_fresh_flt_files(asn_filename=wfc3_grism.options['ASN_DIRECT'], from_path='../RAW')
 	else:
-		shutil.copy('../RAW/%s' %(figs.options['SINGLE_FLT_DIRECT']), './')
+		shutil.copy('../RAW/%s' %(wfc3_grism.options['SINGLE_FLT_DIRECT']), './')
 
-	figs.utils.copy_over_fresh_flt_files(asn_filename=figs.options['ASN_GRISM'], from_path='../RAW')
+	wfc3_grism.utils.copy_over_fresh_flt_files(asn_filename=wfc3_grism.options['ASN_GRISM'], from_path='../RAW')
 
 	#### adjust the target names for the grism and direct files
 	if asn_direct:
-		asn_direct_file = figs.utils.make_targname_asn(asn_direct)
-	asn_grism_file = figs.utils.make_targname_asn(asn_grism)
+		asn_direct_file = wfc3_grism.utils.make_targname_asn(asn_direct)
+	asn_grism_file = wfc3_grism.utils.make_targname_asn(asn_grism)
 
 	### get rootnames of the grism and direct files:
-	figs.options['ROOT_GRISM'] = asn_grism_file.split('_asn.fits')[0]
+	wfc3_grism.options['ROOT_GRISM'] = asn_grism_file.split('_asn.fits')[0]
 	if asn_direct:
-		figs.options['ROOT_DIRECT'] = asn_direct_file.split('_asn.fits')[0]
+		wfc3_grism.options['ROOT_DIRECT'] = asn_direct_file.split('_asn.fits')[0]
 	else:
-		figs.options['ROOT_DIRECT'] = '%s-%s' %(figs.options['ROOT_GRISM'][:-5], figs.options['SINGLE_FLT_FILTER'])
+		wfc3_grism.options['ROOT_DIRECT'] = '%s-%s' %(wfc3_grism.options['ROOT_GRISM'][:-5], wfc3_grism.options['SINGLE_FLT_FILTER'])
 	
 	### process the direct exposures:
-	figs.showMessage('STAGE II: PREPARE DIRECT IMAGES')
+	wfc3_grism.showMessage('STAGE II: PREPARE DIRECT IMAGES')
 	if asn_direct:
-		figs.direct_images.process_direct_images(asn_direct_file)
+		wfc3_grism.direct_images.process_direct_images(asn_direct_file)
 	else:
-		figs.direct_images.process_single_direct_image(figs.options['SINGLE_FLT_DIRECT'])
+		wfc3_grism.direct_images.process_single_direct_image(wfc3_grism.options['SINGLE_FLT_DIRECT'])
 
 	### now process the grism exposures:
-	figs.showMessage('STAGE III: PREPARE GRISM IMAGES')
-	figs.grism_images.process_grism_images(asn_grism_file)
+	wfc3_grism.showMessage('STAGE III: PREPARE GRISM IMAGES')
+	wfc3_grism.grism_images.process_grism_images(asn_grism_file)
 
 	### now make the source catalog for extraction:
-	figs.showMessage('STAGE IV: MAKING SOURCE CATALOGUE')
-	figs.source_catalogue.make_source_catalogue()
+	wfc3_grism.showMessage('STAGE IV: MAKING SOURCE CATALOGUE')
+	wfc3_grism.source_catalogue.make_source_catalogue()
 
 	### now set up files for the fluxcuve:
-	figs.showMessage('STAGE V: SETTING UP FLUXCUBE')
-	figs.contamination.setup_fluxcube()
+	wfc3_grism.showMessage('STAGE V: SETTING UP FLUXCUBE')
+	wfc3_grism.contamination.setup_fluxcube()
 
 	### set up final config parameters for the grism run:
-	figs.showMessage('STAGE VI: FINAL PREPARATION: TUNING CONFIGURATION FILES, MAKING AXE LIST')
+	wfc3_grism.showMessage('STAGE VI: FINAL PREPARATION: TUNING CONFIGURATION FILES, MAKING AXE LIST')
 	set_confguration_parameters()
-	figs.utils.make_aXe_lis(asn_grism_file, asn_direct_file)
+	wfc3_grism.utils.make_aXe_lis(asn_grism_file, asn_direct_file)
 
 	### now start the first aXe routine: iolprep:
-	figs.showMessage('STAGE VII: RUNNING AXE.IOLPREP')    
-	figs.utils.iraf_flpr()
+	wfc3_grism.showMessage('STAGE VII: RUNNING AXE.IOLPREP')    
+	wfc3_grism.utils.iraf_flpr()
 
-	iraf.iolprep(mdrizzle_ima='%s_drz.fits' %figs.options['ROOT_DIRECT'],
-				 input_cat='%s_drz.cat' %figs.options['ROOT_DIRECT'], 
-				 dimension_in=figs.options["AXE_EDGES"])
+	iraf.iolprep(mdrizzle_ima='%s_drz.fits' %wfc3_grism.options['ROOT_DIRECT'],
+				 input_cat='%s_drz.cat' %wfc3_grism.options['ROOT_DIRECT'], 
+				 dimension_in=wfc3_grism.options["AXE_EDGES"])
 
 	### start the aXe routine: axeprep:
-	figs.showMessage('STAGE VIII: RUNNING AXE.AXEPREP')    
+	wfc3_grism.showMessage('STAGE VIII: RUNNING AXE.AXEPREP')    
 	### cange the root directort:
-	os.chdir(figs.options['ROOT_DIR'])
+	os.chdir(wfc3_grism.options['ROOT_DIR'])
 	### check first whether using the 3D-HST master skies or not:
-	if figs.options['MASTER_BACKGROUND_SUBTRACTION'] == True:
+	if wfc3_grism.options['MASTER_BACKGROUND_SUBTRACTION'] == True:
 		backgr = False
 		backim = ''
 	else:
 		backgr = True
 		backim = 'WFC3.IR.G141.sky.V1.0.fits'
 	### now run the routine:
-	figs.utils.iraf_flpr()
-	iraf.axeprep(inlist='%s_prep.lis' %(figs.options['ROOT_GRISM']),
-				 configs=figs.options['FINAL_AXE_CONFIG'],
+	wfc3_grism.utils.iraf_flpr()
+	iraf.axeprep(inlist='%s_prep.lis' %(wfc3_grism.options['ROOT_GRISM']),
+				 configs=wfc3_grism.options['FINAL_AXE_CONFIG'],
 				 backgr=backgr, 
 				 backims=backim, 
 				 mfwhm=3.0,
 				 norm=False)
 
 	### start the aXe routine: axecore:
-	figs.showMessage('STAGE IX: RUNNING AXE.AXECORE')
+	wfc3_grism.showMessage('STAGE IX: RUNNING AXE.AXECORE')
 
-	figs.utils.iraf_flpr() 
+	wfc3_grism.utils.iraf_flpr() 
 
-	iraf.axecore(inlist='%s_prep.lis' %(figs.options['ROOT_GRISM']), 
-				 configs=figs.options['FINAL_AXE_CONFIG'],
+	iraf.axecore(inlist='%s_prep.lis' %(wfc3_grism.options['ROOT_GRISM']), 
+				 configs=wfc3_grism.options['FINAL_AXE_CONFIG'],
 				 back=False,
 				 extrfwhm=4.0, 
 				 drzfwhm=3.0, 
 				 backfwhm=4.0,
-				 slitless_geom=figs.options['FULL_EXTRACTION_GEOMETRY'], 
-				 orient=figs.options['FULL_EXTRACTION_GEOMETRY'], 
+				 slitless_geom=wfc3_grism.options['FULL_EXTRACTION_GEOMETRY'], 
+				 orient=wfc3_grism.options['FULL_EXTRACTION_GEOMETRY'], 
 				 exclude=False, 
-	 			 lambda_mark=figs.options['FILTWAVE'], 
+	 			 lambda_mark=wfc3_grism.options['FILTWAVE'], 
 				 cont_model="fluxcube", 
 				 model_scale=4.0, 
-				 lambda_psf=figs.options['FILTWAVE'],
+				 lambda_psf=wfc3_grism.options['FILTWAVE'],
 				 inter_type="linear", 
 				 np=10, 
 				 interp=0, 
 				 smooth_lengt=0,
 				 smooth_fwhm=0.0,
 				 spectr=False, 
-				 adj_sens=figs.options['AXE_ADJ_SENS'],
+				 adj_sens=wfc3_grism.options['AXE_ADJ_SENS'],
 				 weights=True,
 				 sampling="drizzle")   
     
 	### start the aXe routine: drzprep
-	figs.showMessage('STAGE X: RUNNING AXE.DRZPREP')
+	wfc3_grism.showMessage('STAGE X: RUNNING AXE.DRZPREP')
 
 	### set drizzle path here to avoid axe.axedrizzle() crashing
 	### becuase of too long file names:
-	os.environ['AXE_DRIZZLE_PATH'] = ('./DRIZZLE_%s' %figs.options['GRISM_NAME'])
+	os.environ['AXE_DRIZZLE_PATH'] = ('./DRIZZLE_%s' %wfc3_grism.options['GRISM_NAME'])
 
-	figs.utils.iraf_flpr() 
+	wfc3_grism.utils.iraf_flpr() 
 
-	iraf.drzprep(inlist='%s_prep.lis' %(figs.options['ROOT_GRISM']), 
-				 configs=figs.options['FINAL_AXE_CONFIG'],
-				 opt_extr=figs.options['AXE_OPT_EXTR'], 
+	iraf.drzprep(inlist='%s_prep.lis' %(wfc3_grism.options['ROOT_GRISM']), 
+				 configs=wfc3_grism.options['FINAL_AXE_CONFIG'],
+				 opt_extr=wfc3_grism.options['AXE_OPT_EXTR'], 
 				 back=False)
 
 	### start the aXe routine: axedrizzle
-	figs.showMessage('STAGE X: RUNNING AXE.AXEDRIZZLE')
+	wfc3_grism.showMessage('STAGE X: RUNNING AXE.AXEDRIZZLE')
 
-	figs.utils.iraf_flpr() 
+	wfc3_grism.utils.iraf_flpr() 
 
-	iraf.axedrizzle(inlist='%s_prep.lis' %(figs.options['ROOT_GRISM']),
-					configs=figs.options['FINAL_AXE_CONFIG'],
+	iraf.axedrizzle(inlist='%s_prep.lis' %(wfc3_grism.options['ROOT_GRISM']),
+					configs=wfc3_grism.options['FINAL_AXE_CONFIG'],
 					infwhm=4.0,
 					outfwhm=3.0, 
 					back=False,
 					makespc=True,
-					opt_extr=figs.options['AXE_OPT_EXTR'],
-					adj_sens=figs.options['AXE_ADJ_SENS'], 
+					opt_extr=wfc3_grism.options['AXE_OPT_EXTR'],
+					adj_sens=wfc3_grism.options['AXE_ADJ_SENS'], 
 					driz_separate=False)
 
 	### finally make an object table:
-	figs.utils.make_object_id_table()
+	wfc3_grism.utils.make_object_id_table()
 
 	### change back to root directory 
-	os.chdir(figs.options['ROOT_DIR'])
+	os.chdir(wfc3_grism.options['ROOT_DIR'])
 
 	### make a file containing all the options:
-	figs.showOptions(outfile='./reduction_parameters.txt')
+	wfc3_grism.showOptions(outfile='./reduction_parameters.txt')
 
 	#### get end time
 	end_time = time.time()
 	total_time_minutes = (end_time - start_time) / 60.
-	figs.showMessage('FINISHED!! REDUCTION HAS TAKEN %.1f MINUTES' %(total_time_minutes))
+	wfc3_grism.showMessage('FINISHED!! REDUCTION HAS TAKEN %.1f MINUTES' %(total_time_minutes))
 
 def set_aXe_environment(grating='G141'):
 	"""
@@ -225,16 +225,16 @@ def set_aXe_environment(grating='G141'):
 
 	grating = grating.upper()
 
-	os.environ['AXE_IMAGE_PATH'] = figs.options['ROOT_DIR'] + '/DATA/'
+	os.environ['AXE_IMAGE_PATH'] = wfc3_grism.options['ROOT_DIR'] + '/DATA/'
 	print '--> variable AXE_IMAGE_PATH   set to "./DATA"'
 
 	os.environ['AXE_CONFIG_PATH'] = './CONF/'
 	print '--> variable AXE_CONFIG_PATH  set to "./CONF/"'
 	 
-	os.environ['AXE_OUTPUT_PATH'] = figs.options['ROOT_DIR'] +  '/OUTPUT_' + grating + '/'
+	os.environ['AXE_OUTPUT_PATH'] = wfc3_grism.options['ROOT_DIR'] +  '/OUTPUT_' + grating + '/'
 	print '--> variable AXE_OUTPUT_PATH  set to "./OUTPUT_' + grating + '/"'
 
-	os.environ['AXE_DRIZZLE_PATH'] = figs.options['ROOT_DIR'] + '/DRIZZLE_' + grating + '/'
+	os.environ['AXE_DRIZZLE_PATH'] = wfc3_grism.options['ROOT_DIR'] + '/DRIZZLE_' + grating + '/'
 	print '--> variable AXE_DRIZZLE_PATH set to' + '"./DRIZZLE_' + grating + '/"'
 
 def check_3dhst_environment(makeDirs=True):
@@ -249,8 +249,8 @@ def check_3dhst_environment(makeDirs=True):
 
 	directories = ['DATA',
 				   'RAW',
-				   'OUTPUT_%s' %(figs.options['GRISM_NAME']),
-				   'DRIZZLE_%s' %(figs.options['GRISM_NAME']),
+				   'OUTPUT_%s' %(wfc3_grism.options['GRISM_NAME']),
+				   'DRIZZLE_%s' %(wfc3_grism.options['GRISM_NAME']),
 				   'CONF']
 
 	for dir in directories:
@@ -261,17 +261,17 @@ def check_3dhst_environment(makeDirs=True):
 				raise IOError('Directory %s doesn\'t exist in %s.'
 							  %(dir,os.getcwd()))
 
-	if figs.options['SKY_BACKGROUND'] is not None:
-		if not os.path.exists('CONF/'+figs.options['SKY_BACKGROUND']):
+	if wfc3_grism.options['SKY_BACKGROUND'] is not None:
+		if not os.path.exists('CONF/'+wfc3_grism.options['SKY_BACKGROUND']):
 			raise IOError("options['SKY_BACKGROUND'] doesn't exist:" +   
-						  "CONF/"+figs.options['SKY_BACKGROUND'])
+						  "CONF/"+wfc3_grism.options['SKY_BACKGROUND'])
 
 def cleanup_reduction_directories():
 
 	directories = ['DATA',
 				   'RAW',
-				   'OUTPUT_%s' %(figs.options['GRISM_NAME']),
-				   'DRIZZLE_%s' %(figs.options['GRISM_NAME']),
+				   'OUTPUT_%s' %(wfc3_grism.options['GRISM_NAME']),
+				   'DRIZZLE_%s' %(wfc3_grism.options['GRISM_NAME']),
 				   'CONF']
 
 	for dir in directories:
@@ -298,19 +298,19 @@ def check_flt_files_in_raw():
 
 def copy_over_config_files():
 
-	config_files = glob.glob('%s/*.fits' %(figs.options['GENERAL_CONFIG_FILE_DIRECTORY']))
-	config_files.extend(glob.glob('%s/*.conf' %(figs.options['GENERAL_CONFIG_FILE_DIRECTORY'])))
+	config_files = glob.glob('%s/*.fits' %(wfc3_grism.options['GENERAL_CONFIG_FILE_DIRECTORY']))
+	config_files.extend(glob.glob('%s/*.conf' %(wfc3_grism.options['GENERAL_CONFIG_FILE_DIRECTORY'])))
 
 	### set the reduction configuration directory here:
-	figs.options['REDUCTION_CONFIG_FILE_DIRECTORY'] = '%s/CONF' %(figs.options['ROOT_DIR'])
+	wfc3_grism.options['REDUCTION_CONFIG_FILE_DIRECTORY'] = '%s/CONF' %(wfc3_grism.options['ROOT_DIR'])
 
 	for cfile in config_files:
-		shutil.copy(cfile, figs.options['REDUCTION_CONFIG_FILE_DIRECTORY'])
+		shutil.copy(cfile, wfc3_grism.options['REDUCTION_CONFIG_FILE_DIRECTORY'])
 
 def set_confguration_parameters():
 
 	#### Initialize parameters, update the config file in CONF
-	conf = figs.utils.ConfFile(figs.options['CONFIG_FILE'])
+	conf = wfc3_grism.utils.ConfFile(wfc3_grism.options['CONFIG_FILE'])
 
 	### need to scale the 0th order sensitivity curve
 	### if conf.params['SENSITIVITY_B'] == 'wfc3_abscal_IRg141_0th_sens.fits'.
@@ -330,14 +330,14 @@ def set_confguration_parameters():
 		conf.params['SENSITIVITY_B'] = 'WFC3_G141_0th_SCALED.fits'
 
 	##### Parameters for aXe
-	conf.params['DRZROOT'] = figs.options['ROOT_GRISM']
-	conf.params['DRZRESOLA'] = figs.options['DRZRESOLA']
-	conf.params['DRZSCALE'] = figs.options['DRZSCALE']
-	conf.params['DRZPFRAC'] = figs.options['PIXFRAC']
+	conf.params['DRZROOT'] = wfc3_grism.options['ROOT_GRISM']
+	conf.params['DRZRESOLA'] = wfc3_grism.options['DRZRESOLA']
+	conf.params['DRZSCALE'] = wfc3_grism.options['DRZSCALE']
+	conf.params['DRZPFRAC'] = wfc3_grism.options['PIXFRAC']
     
 	#### Parameters for BEAM order extraction, all higher orders set to 10
 	#### to ensure they are not extracted.
-	conf.params['MMAG_EXTRACT_A'] = str(figs.options['LIMITING_MAGNITUDE'])
+	conf.params['MMAG_EXTRACT_A'] = str(wfc3_grism.options['LIMITING_MAGNITUDE'])
 	conf.params['MMAG_EXTRACT_B'] = str(10.0)
 	conf.params['MMAG_EXTRACT_C'] = str(10.0)
 	conf.params['MMAG_EXTRACT_D'] = str(10.0)
@@ -347,13 +347,13 @@ def set_confguration_parameters():
 	#### object with limiting magnitude defined by options['LIMITING_MAGNITUDE'].
 	#### The equations are described in aXe handbook page 44.
 
-	contam_mag = -2.5*np.log(figs.options['LIMITING_CONTAM'])
+	contam_mag = -2.5*np.log(wfc3_grism.options['LIMITING_CONTAM'])
 
-	MagMarkA = figs.options['LIMITING_MAGNITUDE']+ contam_mag
-	MagMarkB = figs.options['LIMITING_MAGNITUDE']+ contam_mag - 0.5
-	MagMarkC = figs.options['LIMITING_MAGNITUDE']+ contam_mag - 3.1
-	MagMarkD = figs.options['LIMITING_MAGNITUDE']+ contam_mag - 5.9
-	MagMarkE = figs.options['LIMITING_MAGNITUDE']+ contam_mag - 4.5
+	MagMarkA = wfc3_grism.options['LIMITING_MAGNITUDE']+ contam_mag
+	MagMarkB = wfc3_grism.options['LIMITING_MAGNITUDE']+ contam_mag - 0.5
+	MagMarkC = wfc3_grism.options['LIMITING_MAGNITUDE']+ contam_mag - 3.1
+	MagMarkD = wfc3_grism.options['LIMITING_MAGNITUDE']+ contam_mag - 5.9
+	MagMarkE = wfc3_grism.options['LIMITING_MAGNITUDE']+ contam_mag - 4.5
 
 	conf.params['MMAG_MARK_A'] = str(MagMarkA)
 	conf.params['MMAG_MARK_B'] = str(MagMarkB)
@@ -363,18 +363,18 @@ def set_confguration_parameters():
 
 	## Try expanding the SMFACTOR to account for different pixel scales
 	## in the sensitivity smoothing.  Bug in aXe???
-	if figs.options['GRISM_NAME'] == 'G141':
-		conf.params['SMFACTOR'] = '%.3f' %(0.128254/np.float(figs.options['DRZSCALE']))
+	if wfc3_grism.options['GRISM_NAME'] == 'G141':
+		conf.params['SMFACTOR'] = '%.3f' %(0.128254/np.float(wfc3_grism.options['DRZSCALE']))
 
 	conf.params['DQMASK'] = np.str(np.int(conf.params['DQMASK'].split()[0]) | 4096 | 2048)
 
 	#### Workaround to get 0th order contam. in the right place for the fluxcube
-	if figs.options['CONFIG_FILE'] == 'WFC3.IR.G141.V1.0.conf':
+	if wfc3_grism.options['CONFIG_FILE'] == 'WFC3.IR.G141.V1.0.conf':
 		conf.params['BEAMB'] = '-220 220'    
     
         
-	conf.writeto('%s_full.conf' %(figs.options['ROOT_GRISM']))
+	conf.writeto('%s_full.conf' %(wfc3_grism.options['ROOT_GRISM']))
 
-	figs.options['FINAL_AXE_CONFIG'] = '%s_full.conf' %(figs.options['ROOT_GRISM'])
+	wfc3_grism.options['FINAL_AXE_CONFIG'] = '%s_full.conf' %(wfc3_grism.options['ROOT_GRISM'])
 
 	

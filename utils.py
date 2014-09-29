@@ -1,4 +1,4 @@
-import figs
+import wfc3_grism
 
 import os
 import string
@@ -163,7 +163,7 @@ class ConfFile(object):
         Figure out if we're in the root directory or in DATA
         """
 
-        self.path = figs.options['REDUCTION_CONFIG_FILE_DIRECTORY']
+        self.path = wfc3_grism.options['REDUCTION_CONFIG_FILE_DIRECTORY']
         
     def _processLines(self):
         """
@@ -357,7 +357,7 @@ def copy_over_fresh_flt_files(asn_filename, from_path='../RAW'):
     """
 
     # make an ASN object from the asn file
-    ASN  = figs.utils.ASNFile(file='%s/%s' %(from_path, asn_filename))
+    ASN  = wfc3_grism.utils.ASNFile(file='%s/%s' %(from_path, asn_filename))
 
     # extract the list of exposrues and loop through them:
     explist = []
@@ -366,7 +366,7 @@ def copy_over_fresh_flt_files(asn_filename, from_path='../RAW'):
     for exp in explist:
 
         # first find the file and open it as a fits object
-        fits_file = figs.utils.find_fits_gz('%s/%s_flt.fits' %(from_path, exp))
+        fits_file = wfc3_grism.utils.find_fits_gz('%s/%s_flt.fits' %(from_path, exp))
         fi = fits.open(fits_file)
 
         # remove the current copy if one alrady exists:
@@ -428,7 +428,7 @@ def apply_best_flat(fits_file, verbose=False):
     fits_list = [fits_file]
     
     if fits_file.find('_asn.fits') > 0:
-        asn = figs.utils.ASNFile(fits_file)
+        asn = wfc3_grism.utils.ASNFile(fits_file)
         fits_list = []
         for exp in asn.exposures:
             fits_list.append(exp+'_flt.fits')
@@ -448,7 +448,7 @@ def apply_best_flat(fits_file, verbose=False):
         MSG = 'PFLAT, %s: Used= %s, Best= %s' %(file, USED_PFL, BEST_PFL)
         
         if BEST_PFL is None:
-            figs.showMessage("No PFL file found! (NEED %s)" %(USED_PFL), warn=True)
+            wfc3_grism.showMessage("No PFL file found! (NEED %s)" %(USED_PFL), warn=True)
                     
         BEST_PFL = os.path.basename(BEST_PFL)
                 
@@ -619,7 +619,7 @@ def make_aXe_lis(asn_grism_file, asn_direct_file):
     n_exposures = len(asn_grism.exposures)
 
     ### create and open the output file, need to be saved in the root directory:
-    outfile = '%s/%s_prep.lis' %(figs.options['ROOT_DIR'], asn_grism_file.split('_asn.fits')[0])
+    outfile = '%s/%s_prep.lis' %(wfc3_grism.options['ROOT_DIR'], asn_grism_file.split('_asn.fits')[0])
     fp = open(outfile,'w')
     
     ### first check if 1:1 correspondance between direct and grism exposures:
@@ -643,10 +643,10 @@ def make_object_id_table():
     """
     
     ### get out relevant parameters
-    path_spec = figs.options['AXE_DRIZZLE_PATH']
-    root_grism = figs.options['ROOT_GRISM']
+    path_spec = wfc3_grism.options['AXE_DRIZZLE_PATH']
+    root_grism = wfc3_grism.options['ROOT_GRISM']
 
-    sexcat = './DATA/%s_drz.cat' %(figs.options['ROOT_DIRECT'])
+    sexcat = './DATA/%s_drz.cat' %(wfc3_grism.options['ROOT_DIRECT'])
 
     ### open the output file:
     file_out = open('./object_id_table.dat', 'w')
@@ -654,7 +654,7 @@ def make_object_id_table():
     
     spc_hdu = fits.open('%s/%s_2_opt.SPC.fits' %(path_spec, root_grism))
     
-    cat = figs.sex.mySexCat(sexcat)
+    cat = wfc3_grism.sex.mySexCat(sexcat)
     
     for i in range(len(spc_hdu)-1):
         

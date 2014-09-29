@@ -1,4 +1,4 @@
-import figs
+import wfc_grism
 
 from pyraf import iraf
 
@@ -20,7 +20,7 @@ def multidrizzle_run(asn_file, shiftfile, pixfrac=0.8, final_scale=0.06, driz_cr
     """
 
     ### iraf flpr()
-    figs.utils.iraf_flpr()
+    wfc_grism.utils.iraf_flpr()
 
     ### unlearn the routine:
     iraf.unlearn('multidrizzle')
@@ -51,19 +51,19 @@ def multidrizzle_run(asn_file, shiftfile, pixfrac=0.8, final_scale=0.06, driz_cr
 def blot_run(asn_file, drz_file, is_grism=True):
 
     ### iraf flpr()
-    figs.utils.iraf_flpr()
+    wfc_grism.utils.iraf_flpr()
 
     ### unlearn the routine:
     iraf.unlearn('blot')
 
     ### get an ASN object:
-    asn = figs.utils.ASNFile(asn_file)
+    asn = wfc_grism.utils.ASNFile(asn_file)
 
     ### get the multidrizzle run file:
     if is_grism:
-        runfile = '%s.run' %(figs.options['ROOT_GRISM'])
+        runfile = '%s.run' %(wfc_grism.options['ROOT_GRISM'])
     else:
-        runfile = '%s.run' %(figs.options['ROOT_DIRECT'])
+        runfile = '%s.run' %(wfc_grism.options['ROOT_DIRECT'])
 
     ### find the shifts for each exposure which you need as input to blot:
     xsh = []
@@ -92,9 +92,9 @@ def blot_run(asn_file, drz_file, is_grism=True):
     sci_header.set('EXPTIME', exptime)
 
     new_hdu = fits.PrimaryHDU(data=sci_data, header=sci_header)
-    new_hdu.writeto('%s_drz_sci.fits' %(figs.options['ROOT_GRISM']), clobber=True)
+    new_hdu.writeto('%s_drz_sci.fits' %(wfc_grism.options['ROOT_GRISM']), clobber=True)
 
-    blot_infile = '%s_drz_sci.fits' %(figs.options['ROOT_GRISM'])
+    blot_infile = '%s_drz_sci.fits' %(wfc_grism.options['ROOT_GRISM'])
 
     ### loop through each exposure and blot back:
     for i, exp in enumerate(asn.exposures):

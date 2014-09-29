@@ -1,4 +1,4 @@
-import figs
+import wfc3_grism
 
 import os
 import glob
@@ -23,26 +23,26 @@ def register_fluxcube_images(fluxcube_filters):
     """
 
     ### get the root name:
-    root = figs.options['ROOT_DIRECT']
+    root = wfc3_grism.options['ROOT_DIRECT']
     
     ### make the SExtractor files for the direct image and mosiac:
-    se = figs.sex.SExtractor()
+    se = wfc3_grism.sex.SExtractor()
     ### Set the output parameters required for image registration 
-    ### (stored in [figs source]/data/imreg.param) 
+    ### (stored in [wfc3_grism source]/data/imreg.param) 
     se.imregParams()
     se.copyConvFile()
     se.overwrite = True
 
     for ib, filt in enumerate(fluxcube_filters):
               
-        figs.showMessage('REGISTERING: %s' %(filt[0]))
+        wfc3_grism.showMessage('REGISTERING: %s' %(filt[0]))
         
         #### First find its corresponding weight file:
-        wht_image = glob.glob('%s/*%s*_wht*.fits' %(figs.options['FLUXCUBE_FILTERS_DIR'], filt[1].lower()))[0]
+        wht_image = glob.glob('%s/*%s*_wht*.fits' %(wfc3_grism.options['FLUXCUBE_FILTERS_DIR'], filt[1].lower()))[0]
         print 'WEIGHT IMAGE: %s' %(wht_image)
             
         ### iraf flpr()
-        figs.utils.iraf_flpr()
+        wfc3_grism.utils.iraf_flpr()
 
         #### sregister is being funny about trying to delete files IT creates ITSELF, so
         #### added a bit of a fudge to skip this error as it doesn't affect
@@ -62,7 +62,7 @@ def register_fluxcube_images(fluxcube_filters):
                     output='%s_drz.fits[SCI,1,append]' %(filt[1]))
         
         ### iraf flpr()
-        figs.utils.iraf_flpr()
+        wfc3_grism.utils.iraf_flpr()
 
         #### sregister is being funny about trying to delete files IT creates ITSELF, so
         #### added a bit of a fudge to skip this error as it doesn't affect
@@ -81,7 +81,7 @@ def register_fluxcube_images(fluxcube_filters):
                     output='%s_drz.fits[WHT,1,append]' %(filt[1]))     
            
         ### iraf flpr()            
-        figs.utils.iraf_flpr()
+        wfc3_grism.utils.iraf_flpr()
         
         ### plot histogram of object positions to check that registration has worked properly:
         ### set sextractor parameters: 
@@ -91,7 +91,7 @@ def register_fluxcube_images(fluxcube_filters):
         ### sort out the calalog for the registered image:
         se.options['CATALOG_NAME'] = 'reg.cat'
         status = se.sextractImage('%s_drz_reg.fits' %(filt[1]))
-        reg_sexCat = figs.sex.mySexCat('reg.cat')
+        reg_sexCat = wfc3_grism.sex.mySexCat('reg.cat')
         
         ### make catalog for f140w image, need to copy out the science extension to
         ### use with sextractor:
@@ -103,7 +103,7 @@ def register_fluxcube_images(fluxcube_filters):
             iraf.imcopy(input='%s_drz.fits[SCI]' %(root), output='%s_SCI.fits' %(root))
 
         status = se.sextractImage('%s_SCI.fits' %(root))
-        dir_sexCat = figs.sex.mySexCat('direct.cat')
+        dir_sexCat = wfc3_grism.sex.mySexCat('direct.cat')
         
         separation = np.empty(len(dir_sexCat['X_IMAGE']))
         
@@ -119,7 +119,7 @@ def register_fluxcube_images(fluxcube_filters):
         
             separation[i] = min(sep)
         
-        fig, ax = plt.subplots(figsize=(5,5))
+        fig, ax = plt.subplots(wfc3_grismize=(5,5))
         ax.minorticks_on()
         ax.hist(separation, bins=np.arange(-1.0, 1.0, 0.05), histtype='step', color='k')
         ax.set_xlabel(r'$\mathrm{Separation}$ $/$ $\mathrm{arcsec}$', fontsize=14)
@@ -149,7 +149,7 @@ def make_zeropoint_file(fluxcube_filters):
     ### open the file:
     outfile = open('zeropoints.lis','w')
 
-    root = figs.options['ROOT_DIRECT']
+    root = wfc3_grism.options['ROOT_DIRECT']
 
     ### generate the lines:
     lines=[]
@@ -168,7 +168,7 @@ def setup_fluxcube():
     """
 
     ### get the fluxcube filters
-    fluxcube_filters = figs.options['FLUXCUBE_FILTERS']
+    fluxcube_filters = wfc3_grism.options['FLUXCUBE_FILTERS']
 
     ### register the images to the pointing:
     register_fluxcube_images(fluxcube_filters)
@@ -177,14 +177,14 @@ def setup_fluxcube():
     make_zeropoint_file(fluxcube_filters)
 
     ### iraf.flpr:
-    figs.utils.iraf_flpr()
+    wfc3_grism.utils.iraf_flpr()
 
     ### run fcube prep:
-    iraf.fcubeprep(grism_image = '%s_drz.fits' %figs.options['ROOT_GRISM'],
-                   segm_image = '%s_seg.fits' %figs.options['ROOT_DIRECT'],
+    iraf.fcubeprep(grism_image = '%s_drz.fits' %wfc3_grism.options['ROOT_GRISM'],
+                   segm_image = '%s_seg.fits' %wfc3_grism.options['ROOT_DIRECT'],
                    filter_info = 'zeropoints.lis', 
                    AB_zero = True, 
-                   dimension_info = figs.options["AXE_EDGES"], 
+                   dimension_info = wfc3_grism.options["AXE_EDGES"], 
                    interpol="poly5")
 
 
