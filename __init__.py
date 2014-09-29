@@ -42,7 +42,7 @@ def defaultOptions():
 
     ### the observation program the reduction is being used for,
     ### currently either 3D-HST, FRONTIER_FIELDS, FIGS
-    options['OBS'] = '3D-HST'
+    options['OBS'] = ''
     
     ### the root directory for a 3D-HST reduction:
     options['ROOT_DIR'] = '/disk1/fc/FIGS/tests/pipeline_test'
@@ -188,7 +188,7 @@ def showMessage(msg, warn=False):
            msg+'\n\n'+
            bg_color+text_color+term.BOLD+botbar+'\n'+term.NORMAL)
 
-showMessage('%s PARAMETERS INITIALIZED' %(options['OBS']))
+showMessage('PARAMETERS INITIALIZED')
 
 def showOptions(outfile=None):
     """
