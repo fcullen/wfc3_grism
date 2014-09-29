@@ -1,0 +1,9 @@
+{
+	"folders":
+	[
+		{
+			"follow_symlinks": true,
+			"path": "/disk1/fc/grism_pipeline/wfc3_grism"
+		}
+	]
+}
