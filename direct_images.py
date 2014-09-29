@@ -1,4 +1,4 @@
-import wfc_grism
+import wfc3_grism
 import os
 
 import numpy as np
@@ -14,15 +14,15 @@ def process_single_direct_image(direct_flt):
 
     ### re-name the _flt file as a fake _drz file to use
     ### in the correct_shifts.align_direct_to_reference() routine:
-    shutil.move(direct_flt, '%s_drz.fits' %(wfc_grism.options['ROOT_DIRECT']))
+    shutil.move(direct_flt, '%s_drz.fits' %(wfc3_grism.options['ROOT_DIRECT']))
 
     ### cut out a region of the CANDEL image to use to align the grism exposures:
-    wfc_grism.showMessage('CUTTING OUT CANDELS REGION TO ALIGN')
-    wfc_grism.correct_shifts.run_sregister_for_align_image(mosiac_drz=wfc_grism.options['ALIGN_IMAGE'])
+    wfc3_grism.showMessage('CUTTING OUT CANDELS REGION TO ALIGN')
+    wfc3_grism.correct_shifts.run_sregister_for_align_image(mosiac_drz=wfc3_grism.options['ALIGN_IMAGE'])
 
     ### align to the reference mosaic:
-    wfc_grism.showMessage('ALIGNING DIRECT IMAGE TO CANDELS')
-    wfc_grism.correct_shifts.align_direct_to_reference(verbose=True, n_iter=5, drizzled_image=False)
+    wfc3_grism.showMessage('ALIGNING DIRECT IMAGE TO CANDELS')
+    wfc3_grism.correct_shifts.align_direct_to_reference(verbose=True, n_iter=5, drizzled_image=False)
 
 def process_direct_images(asn_direct_file):
     """
@@ -32,78 +32,78 @@ def process_direct_images(asn_direct_file):
     ii)  Run multidrizzle with native pixel scale to flag cosmic rays
     iii) Run multidrizzle to drizzle to 1/2 pixel scale
     iv)  Resgister to CANDELS mosiac to get rough area of overlap
-    v)   Align drizzled image to mosaic using wfc_grism.correct_shifts.align_direct_to_reference()
+    v)   Align drizzled image to mosaic using wfc3_grism.correct_shifts.align_direct_to_reference()
     vi)  Copy over fresh _flt files and re-run multidrizzle with new shifts
     """
 
     #### first get the shifts between the individual direct exposures:
-    wfc_grism.showMessage('RUNNING TWEAKSHIFT ON DIRECT IMAGES')
-    wfc_grism.correct_shifts.run_tweakshifts_on_direct_exposures(asn_direct_file, 
+    wfc3_grism.showMessage('RUNNING TWEAKSHIFT ON DIRECT IMAGES')
+    wfc3_grism.correct_shifts.run_tweakshifts_on_direct_exposures(asn_direct_file, 
                                                             verbose=True)
 
     #### drizzle them together:
-    wfc_grism.showMessage('RUNNING MULTIDRIZZLE ON DIRECT IMAGES')
+    wfc3_grism.showMessage('RUNNING MULTIDRIZZLE ON DIRECT IMAGES')
 
     ### first pass use native pixel scale for cosmic ray rejection:
-    wfc_grism.multidrizzle.multidrizzle_run(asn_direct_file, 
-                                       shiftfile='%s_initial_shifts.txt' %(wfc_grism.options['ROOT_DIRECT']), 
+    wfc3_grism.multidrizzle.multidrizzle_run(asn_direct_file, 
+                                       shiftfile='%s_initial_shifts.txt' %(wfc3_grism.options['ROOT_DIRECT']), 
                                        pixfrac=1.0, 
                                        final_scale=0.128254, 
                                        driz_cr=True,
                                        skysub=True)
 
     ### now sample at 1/2 pixel scale for registering to CANDELS images:
-    wfc_grism.multidrizzle.multidrizzle_run(asn_direct_file, 
-                                       shiftfile='%s_initial_shifts.txt' %(wfc_grism.options['ROOT_DIRECT']), 
+    wfc3_grism.multidrizzle.multidrizzle_run(asn_direct_file, 
+                                       shiftfile='%s_initial_shifts.txt' %(wfc3_grism.options['ROOT_DIRECT']), 
                                        pixfrac=0.8, 
                                        final_scale=0.06, 
                                        driz_cr=False,
                                        skysub=True)
 
-    shutil.copy('%s_drz.fits' %wfc_grism.options['ROOT_DIRECT'], 'initial_shift_drz.fits')
+    shutil.copy('%s_drz.fits' %wfc3_grism.options['ROOT_DIRECT'], 'initial_shift_drz.fits')
 
     ### cut out a region of the CANDEL image to use to align the grism exposures:
-    wfc_grism.showMessage('CUTTING OUT CANDELS REGION TO ALIGN')
-    wfc_grism.correct_shifts.run_sregister_for_align_image(mosiac_drz=wfc_grism.options['ALIGN_IMAGE'])
+    wfc3_grism.showMessage('CUTTING OUT CANDELS REGION TO ALIGN')
+    wfc3_grism.correct_shifts.run_sregister_for_align_image(mosiac_drz=wfc3_grism.options['ALIGN_IMAGE'])
 
     ### align dirzzled image to reference CANDELS mosaic:
-    wfc_grism.showMessage('ALIGNING DIRECT IMAGE TO CANDELS')
-    wfc_grism.correct_shifts.align_direct_to_reference(verbose=True)
+    wfc3_grism.showMessage('ALIGNING DIRECT IMAGE TO CANDELS')
+    wfc3_grism.correct_shifts.align_direct_to_reference(verbose=True)
 
     ### copy over the new .flt files into the DATA directory to apply new shfits:
-    wfc_grism.showMessage('RE-RUNNING MULTIDRIZZLE WITH THE NEW SHIFTS FOR COSMIC RAY REJECTION')
-    wfc_grism.utils.copy_over_fresh_flt_files(asn_filename=wfc_grism.options['ASN_DIRECT'], from_path='../RAW')
+    wfc3_grism.showMessage('RE-RUNNING MULTIDRIZZLE WITH THE NEW SHIFTS FOR COSMIC RAY REJECTION')
+    wfc3_grism.utils.copy_over_fresh_flt_files(asn_filename=wfc3_grism.options['ASN_DIRECT'], from_path='../RAW')
 
     ### first pass cosmic-ray rejection:
-    wfc_grism.multidrizzle.multidrizzle_run(asn_direct_file, 
-                                       shiftfile='%s_final_shifts_yshift.txt' %(wfc_grism.options['ROOT_DIRECT']), 
+    wfc3_grism.multidrizzle.multidrizzle_run(asn_direct_file, 
+                                       shiftfile='%s_final_shifts_yshift.txt' %(wfc3_grism.options['ROOT_DIRECT']), 
                                        pixfrac=1.0, 
                                        final_scale=0.128254, 
                                        driz_cr=True,
                                        skysub=False)
 
     ### blot back to original exposures (now with cosmic ray rejection and background subtraction):
-    wfc_grism.showMessage('RUNNING BLOT ON DRIZZLED DIRECT IMAGE')
-    wfc_grism.multidrizzle.blot_run(asn_direct_file, 
-                               drz_file='%s_drz.fits' %(wfc_grism.options['ROOT_DIRECT']),
+    wfc3_grism.showMessage('RUNNING BLOT ON DRIZZLED DIRECT IMAGE')
+    wfc3_grism.multidrizzle.blot_run(asn_direct_file, 
+                               drz_file='%s_drz.fits' %(wfc3_grism.options['ROOT_DIRECT']),
                                is_grism=False)
 
     ### generate segmentation map for each grism exposure:
-    wfc_grism.showMessage('MAKING SEGEMENTAION MAPS FOR EACH DIRECT EXPOSURE')
+    wfc3_grism.showMessage('MAKING SEGEMENTAION MAPS FOR EACH DIRECT EXPOSURE')
     make_direct_exposure_segmaps(asn_direct_file, sigma=1.0)
 
     ### do the background subtraction:
-    wfc_grism.showMessage('DOING FULL DIRECT IMAGE SKY SUBTRACTION')
-    asn = wfc_grism.utils.ASNFile(asn_direct_file)
+    wfc3_grism.showMessage('DOING FULL DIRECT IMAGE SKY SUBTRACTION')
+    asn = wfc3_grism.utils.ASNFile(asn_direct_file)
     for direct_exposure in asn.exposures:
         direct_image_sky_subtraction(flt='%s_flt.fits' %(direct_exposure),
                                      segmap='%s.seg.fits' %(direct_exposure),
                                      show=True)
 
     ### final drizzle to 1/2 pixel resolution with the background subtraction:
-    wfc_grism.showMessage('FINAL MULTIDRIZZLE WITH THE NEW SHIFTS + BACKGROUND SUBTRACTION')
-    wfc_grism.multidrizzle.multidrizzle_run(asn_direct_file, 
-                                       shiftfile='%s_final_shifts_xshift.txt' %(wfc_grism.options['ROOT_DIRECT']),
+    wfc3_grism.showMessage('FINAL MULTIDRIZZLE WITH THE NEW SHIFTS + BACKGROUND SUBTRACTION')
+    wfc3_grism.multidrizzle.multidrizzle_run(asn_direct_file, 
+                                       shiftfile='%s_final_shifts_xshift.txt' %(wfc3_grism.options['ROOT_DIRECT']),
                                        pixfrac=0.8, 
                                        final_scale=0.06, 
                                        driz_cr=False,
@@ -111,12 +111,12 @@ def process_direct_images(asn_direct_file):
 
 
     ### now run sregister on CANDELS mosaic if using one as a detection image:
-    if wfc_grism.options['DETECTION_IMAGE']:
-        wfc_grism.showMessage('ADDING BORDER TO DRZ AND MAKING FINCAL CANDELS CUTOUT')
-        add_border_to_drz(drz_image='%s_drz.fits' %(wfc_grism.options['ROOT_DIRECT']), extension=500.)
-        wfc_grism.correct_shifts.run_sregister_for_detection_image(asn_direct_file, 
-                                                              sci_image=wfc_grism.options['DETECTION_IMAGE'],
-                                                              wht_image=wfc_grism.options['DETECTION_WHT'] )
+    if wfc3_grism.options['DETECTION_IMAGE']:
+        wfc3_grism.showMessage('ADDING BORDER TO DRZ AND MAKING FINCAL CANDELS CUTOUT')
+        add_border_to_drz(drz_image='%s_drz.fits' %(wfc3_grism.options['ROOT_DIRECT']), extension=500.)
+        wfc3_grism.correct_shifts.run_sregister_for_detection_image(asn_direct_file, 
+                                                              sci_image=wfc3_grism.options['DETECTION_IMAGE'],
+                                                              wht_image=wfc3_grism.options['DETECTION_WHT'] )
 
 def add_border_to_drz(drz_image, extension=300.):
     """
@@ -160,10 +160,10 @@ def make_direct_exposure_segmaps(asn_direct, sigma=1.5):
     """
 
     ### get an ASN object:
-    asn = wfc_grism.utils.ASNFile(asn_direct)
+    asn = wfc3_grism.utils.ASNFile(asn_direct)
 
     ### set the default SExtractor parameters:
-    se = wfc_grism.sex.SExtractor()
+    se = wfc3_grism.sex.SExtractor()
     se.aXeParams()
     se.copyConvFile(grism=False)
 
@@ -176,7 +176,7 @@ def make_direct_exposure_segmaps(asn_direct, sigma=1.5):
     se.options['FILTER_NAME'] = 'default.conv'
     se.options['DETECT_THRESH']    = '%.1f' %sigma
     se.options['ANALYSIS_THRESH']  = '%.1f' %sigma
-    se.options['MAG_ZEROPOINT'] = '%.2f' %wfc_grism.options['MAG_ZEROPOINT']
+    se.options['MAG_ZEROPOINT'] = '%.2f' %wfc3_grism.options['MAG_ZEROPOINT']
     se.options['DETECT_MINAREA'] = '1'
     se.overwrite = True
 
@@ -218,7 +218,7 @@ def direct_image_sky_subtraction(flt, segmap, sig_clip=3.0, show=True):
     sky_pixels = np.copy(im_data[mask_sky].flatten())
 
     ### use sigma clipping to get the true sky values:
-    true_sky = wfc_grism.utils.sigma_clip(sky_pixels, sig=3, iters=None)
+    true_sky = wfc3_grism.utils.sigma_clip(sky_pixels, sig=3, iters=None)
  
     ### find the median of this array:
     med_sky = np.median(true_sky.data[np.logical_not(true_sky.mask)])

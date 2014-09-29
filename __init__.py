@@ -36,8 +36,6 @@ def defaultOptions():
     >>> wfc3_grism.showOptions()
     """
 
-    showMessage('Initializing FIGS parameters')
-    
     #### delete all keywords and reset
     for key in options.keys():
         pop = options.popitem()
@@ -189,6 +187,8 @@ def showMessage(msg, warn=False):
            '\n'+substr+'\n'+topbar+'\n\n'+term.NORMAL+
            msg+'\n\n'+
            bg_color+text_color+term.BOLD+botbar+'\n'+term.NORMAL)
+
+showMessage('%s PARAMETERS INITIALIZED' %(options['OBS']))
 
 def showOptions(outfile=None):
     """
