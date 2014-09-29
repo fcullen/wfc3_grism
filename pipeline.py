@@ -123,7 +123,7 @@ def reduction_script(asn_grism=None, asn_direct=None, test_run=False):
 	### cange the root directort:
 	os.chdir(wfc3_grism.options['ROOT_DIR'])
 	### check first whether using the 3D-HST master skies or not:
-	if wfc3_grism.options['MASTER_BACKGROUND_SUBTRACTION'] == True:
+	if wfc3_grism.options['CUSTOM_MASTER_BACKGROUND_SUBTRACTION'] == True:
 		backgr = False
 		backim = ''
 	else:

@@ -51,7 +51,7 @@ def process_grism_images(asn_grism_file):
 	wfc3_grism.utils.copy_over_fresh_flt_files(wfc3_grism.options['ASN_GRISM'], from_path='../RAW')
 
 
-	if wfc3_grism.options['MASTER_BACKGROUND_SUBTRACTION']:
+	if wfc3_grism.options['CUSTOM_MASTER_BACKGROUND_SUBTRACTION']:
 		#### do the full background subtraction on the grism exposures:
 		wfc3_grism.showMessage('DOING FULL GRISM SKY SUBTRACTION')
 		asn = wfc3_grism.utils.ASNFile(asn_grism_file)

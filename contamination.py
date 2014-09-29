@@ -119,7 +119,7 @@ def register_fluxcube_images(fluxcube_filters):
         
             separation[i] = min(sep)
         
-        fig, ax = plt.subplots(wfc3_grismize=(5,5))
+        fig, ax = plt.subplots(figsize=(5,5))
         ax.minorticks_on()
         ax.hist(separation, bins=np.arange(-1.0, 1.0, 0.05), histtype='step', color='k')
         ax.set_xlabel(r'$\mathrm{Separation}$ $/$ $\mathrm{arcsec}$', fontsize=14)

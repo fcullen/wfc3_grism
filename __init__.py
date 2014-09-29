@@ -78,7 +78,7 @@ def defaultOptions():
     ### location of the 3D-HST master sky backgrounds and wheter to use them.
     ### if options['MASTER_BACKGROUND_SUBTRACTION'] = False use the default aXe
     ### background subtraction
-    options['MASTER_BACKGROUND_SUBTRACTION'] = True
+    options['CUSTOM_MASTER_BACKGROUND_SUBTRACTION'] = True
     options['MASTER_SKIES'] = ['sky_cosmos.fits', 'sky_goodsn_hi.fits', 'sky_goodsn_lo.fits', 'sky_goodsn_vhi.fits']
 
     ### option to input a pre-made source catalog to the reduction pipeline:
