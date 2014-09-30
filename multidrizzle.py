@@ -4,6 +4,7 @@ from pyraf import iraf
 
 import os
 import glob
+import shutil
 
 import numpy as np
 
@@ -152,9 +153,9 @@ def make_drizzled_contamination_image(asn_grism_file):
     """
 
     ### get starting directory, if not in data directory, go there!
-    cwd = os.get_cwd()
-    if cwd != wfc3_grism.options['ROOT_DIR']:
-        os.chdir('%s/DATA' %wfc3_grism.optionsp['ROOT_DIR'])
+    cwd = os.getcwd()
+    if cwd != '%s/DATA' %(wfc3_grism.options['ROOT_DIR']):
+        os.chdir('%s/DATA' %wfc3_grism.options['ROOT_DIR'])
 
     ### get the asn girsm object:
     asn_grism = wfc3_grism.utils.ASNFile(asn_grism_file)
@@ -172,9 +173,6 @@ def make_drizzled_contamination_image(asn_grism_file):
     asn_grism.product = '%s_CONT' %(wfc3_grism.options['ROOT_GRISM'])
     asn_grism.write('%s_CONT_asn.fits'%(wfc3_grism.options['ROOT_GRISM']))
 
-    ### open it as the asn_file for Multidrizzle:
-    asn_file = wfc3_grism.utils.ASNFile('%s_CONT_asn.fits' %(wfc3_grism.options['ROOT_GRISM']))
-
     ### iraf flpr()
     wfc3_grism.utils.iraf_flpr()
 
@@ -182,8 +180,8 @@ def make_drizzled_contamination_image(asn_grism_file):
     iraf.unlearn('multidrizzle')
 
     ### first apply x_shift
-    iraf.multidrizzle(input=asn_file,
-                      shiftfile='%s_final_shifts_xshift' %(wfc3_grism.options['ROOT_GRISM'),
+    iraf.multidrizzle(input='%s_CONT_asn.fits' %(wfc3_grism.options['ROOT_GRISM']),
+                      shiftfile='%s_final_shifts_xshift.txt' %(wfc3_grism.options['ROOT_GRISM']),
                       output ='', 
                       skysub = False, 
                       updatewcs =True,
@@ -209,8 +207,8 @@ def make_drizzled_contamination_image(asn_grism_file):
     iraf.unlearn('multidrizzle')
 
     ### now apply y_shift
-    iraf.multidrizzle(input=asn_file,
-                      shiftfile='%s_final_shifts_yshift' %(wfc3_grism.options['ROOT_GRISM'),
+    iraf.multidrizzle(input='%s_CONT_asn.fits' %(wfc3_grism.options['ROOT_GRISM']),
+                      shiftfile='%s_final_shifts_yshift.txt' %(wfc3_grism.options['ROOT_GRISM']),
                       output ='', 
                       skysub = False, 
                       updatewcs =True,
@@ -233,7 +231,7 @@ def make_drizzled_contamination_image(asn_grism_file):
     clean_multidrizzle_output()
 
     ### copy over the raw grism flt files which were overwritten:
-     for exp in asn_grism.exposures:
+    for exp in asn_grism.exposures:
         shutil.copy('../RAW/%s_flt.fits' %exp, './')
 
     ### change back to current directory:

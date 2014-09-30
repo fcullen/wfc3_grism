@@ -129,6 +129,7 @@ def reduction_script(asn_grism=None, asn_direct=None):
 	else:
 		backgr = True
 		backim = 'WFC3.IR.G141.sky.V1.0.fits'
+
 	### now run the routine:
 	wfc3_grism.utils.iraf_flpr()
 	iraf.axeprep(inlist='%s_prep.lis' %(wfc3_grism.options['ROOT_GRISM']),
@@ -172,6 +173,7 @@ def reduction_script(asn_grism=None, asn_direct=None):
 	### set drizzle path here to avoid axe.axedrizzle() crashing
 	### becuase of too long file names:
 	os.environ['AXE_DRIZZLE_PATH'] = ('./DRIZZLE_%s' %wfc3_grism.options['GRISM_NAME'])
+	wfc3_grism.options['AXE_DRIZZLE_PATH'] = ('%s/DRIZZLE_%s' %(wfc3_grism.options['ROOT_DIR'], wfc3_grism.options['GRISM_NAME']))
 
 	wfc3_grism.utils.iraf_flpr() 
 
@@ -196,7 +198,7 @@ def reduction_script(asn_grism=None, asn_direct=None):
 					driz_separate=False)
 
 	### make a drizzled contamination image to test accuracy of contamination model:
-	wfc3_grism.showMessage('STAGE Xi: MAKING DRIZZLED CONTAMINATION IMAGE')
+	wfc3_grism.showMessage('STAGE XI: MAKING DRIZZLED CONTAMINATION IMAGE')
 	wfc3_grism.multidrizzle.make_drizzled_contamination_image(asn_grism_file)
 
 	### finally make an object table:
@@ -207,6 +209,9 @@ def reduction_script(asn_grism=None, asn_direct=None):
 
 	### make a file containing all the options:
 	wfc3_grism.showOptions(outfile='./reduction_parameters.txt')
+
+	### finally remove any leftover files:
+	final_cleanup()
 
 	#### get end time
 	end_time = time.time()
@@ -381,4 +386,17 @@ def set_confguration_parameters():
 
 	wfc3_grism.options['FINAL_AXE_CONFIG'] = '%s_full.conf' %(wfc3_grism.options['ROOT_GRISM'])
 
-	
+def final_cleanup():
+
+	os.chdir('%s/DATA' %(wfc3_grism.options['ROOT_DIR']))
+
+	### remove lefover files:
+	rmfiles = ['bg.fits', 'default.conv', 'default.nnw', 'grism.conv', 'sex_stderr', 'wfc3_grism_auto.param', 'wfc3_grism_auto.sex']
+
+	for rfile in rmfiles:
+		try:
+			os.remove(rfile)
+		except:
+			pass
+
+	os.chdir('%s' %(wfc3_grism.options['ROOT_DIR']))
