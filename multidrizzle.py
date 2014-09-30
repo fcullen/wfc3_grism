@@ -146,14 +146,98 @@ def clean_multidrizzle_output():
     else:
         pass
 
+def make_drizzled_contamination_image(asn_grism_file):
+    """
+    Drizzle the output contamination images to compare with the drizzled real image
+    """
 
+    ### get starting directory, if not in data directory, go there!
+    cwd = os.get_cwd()
+    if cwd != wfc3_grism.options['ROOT_DIR']:
+        os.chdir('%s/DATA' %wfc3_grism.optionsp['ROOT_DIR'])
 
+    ### get the asn girsm object:
+    asn_grism = wfc3_grism.utils.ASNFile(asn_grism_file)
 
+    for exp in asn_grism.exposures:
+        ### copy OUTPUT_G141/*_CONT.fits into existing grism FLT files in DATA directory
+        flt = fits.open('%s_flt.fits' %exp,'update')
+        cont = fits.open('../OUTPUT_%s/%s_flt_2.CONT.fits' %(wfc3_grism.options['GRISM_NAME'],
+                                                             exp))
+        flt[1].data  = cont[1].data
+        
+        flt.flush()
 
+    ### make a separate CONT asn file:
+    asn_grism.product = '%s_CONT' %(wfc3_grism.options['ROOT_GRISM'])
+    asn_grism.write('%s_CONT_asn.fits'%(wfc3_grism.options['ROOT_GRISM']))
 
+    ### open it as the asn_file for Multidrizzle:
+    asn_file = wfc3_grism.utils.ASNFile('%s_CONT_asn.fits' %(wfc3_grism.options['ROOT_GRISM']))
 
+    ### iraf flpr()
+    wfc3_grism.utils.iraf_flpr()
 
+    ### unlearn the routine:
+    iraf.unlearn('multidrizzle')
 
+    ### first apply x_shift
+    iraf.multidrizzle(input=asn_file,
+                      shiftfile='%s_final_shifts_xshift' %(wfc3_grism.options['ROOT_GRISM'),
+                      output ='', 
+                      skysub = False, 
+                      updatewcs =True,
+                      static=True,
+                      static_sig=4.0,
+                      driz_separate=True, 
+                      driz_sep_kernel='turbo',
+                      median=True, 
+                      blot=True, 
+                      driz_cr=False,
+                      driz_cr_snr='6 3.0',
+                      driz_cr_scale='1.6 0.7',
+                      final_scale = wfc3_grism.options['DRZSCALE'], 
+                      final_pixfrac = wfc3_grism.options['PIXFRAC'],
+                      driz_combine=True,
+                      final_wht_type='IVM',
+                      clean=False)
+
+    ### iraf flpr()
+    wfc3_grism.utils.iraf_flpr()
+
+    ### unlearn the routine:
+    iraf.unlearn('multidrizzle')
+
+    ### now apply y_shift
+    iraf.multidrizzle(input=asn_file,
+                      shiftfile='%s_final_shifts_yshift' %(wfc3_grism.options['ROOT_GRISM'),
+                      output ='', 
+                      skysub = False, 
+                      updatewcs =True,
+                      static=True,
+                      static_sig=4.0,
+                      driz_separate=True, 
+                      driz_sep_kernel='turbo',
+                      median=True, 
+                      blot=True, 
+                      driz_cr=False,
+                      driz_cr_snr='6 3.0',
+                      driz_cr_scale='1.6 0.7',
+                      final_scale = wfc3_grism.options['DRZSCALE'], 
+                      final_pixfrac = wfc3_grism.options['PIXFRAC'],
+                      driz_combine=True,
+                      final_wht_type='IVM',
+                      clean=False)
+
+    ### clean up:
+    clean_multidrizzle_output()
+
+    ### copy over the raw grism flt files which were overwritten:
+     for exp in asn_grism.exposures:
+        shutil.copy('../RAW/%s_flt.fits' %exp, './')
+
+    ### change back to current directory:
+    os.chdir(cwd)
 
 
 

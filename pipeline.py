@@ -195,6 +195,10 @@ def reduction_script(asn_grism=None, asn_direct=None):
 					adj_sens=wfc3_grism.options['AXE_ADJ_SENS'], 
 					driz_separate=False)
 
+	### make a drizzled contamination image to test accuracy of contamination model:
+	wfc3_grism.showMessage('STAGE Xi: MAKING DRIZZLED CONTAMINATION IMAGE')
+	wfc3_grism.multidrizzle.make_drizzled_contamination_image(asn_grism_file)
+
 	### finally make an object table:
 	wfc3_grism.utils.make_object_id_table()
 
