@@ -99,14 +99,19 @@ def run_sextractor_setup():
 
 	se.options['FILTER']    = 'Y'
 	se.options['DETECT_MINAREA'] = str(wfc3_grism.options['DETECT_MINAREA'])
-
 	se.options['DETECT_THRESH']    = str(wfc3_grism.options['DETECT_THRESH']) 
 	se.options['ANALYSIS_THRESH']  = str(wfc3_grism.options['ANALYSIS_THRESH']) 
-	se.options['MAG_ZEROPOINT'] = str(wfc3_grism.options['MAG_ZEROPOINT'])
 	se.options['DETECT_MINAREA'] = str(wfc3_grism.options['DETECT_MINAREA'])
 
 	se.options['BACK_SIZE'] = str(wfc3_grism.options['BACK_SIZE'])
 	se.options['DEBLEND_MINCONT'] = str(wfc3_grism.options['DEBLEND_MINCONT'])
+
+	### if using separate detection image take the zeropoint of that detection image, else use
+	### use the zeropoint of the direct image:
+	if wfc3_grism.options['DETECTION_IMAGE'] and wfc3_grism.options['USE_DETECTION_IMAGE_FOR_ANALYSIS']:
+		se.options['MAG_ZEROPOINT'] = str(wfc3_grism.options['DETECTION_MAG_ZEROPOINT'])
+	else:
+		se.options['MAG_ZEROPOINT'] = str(wfc3_grism.options['DIRECT_MAG_ZEROPOINT'])
 
 	return se
 

@@ -19,7 +19,7 @@ from astropy.io import fits
 ### aXe specific imports:
 import aXe2html.sexcat.sextractcat
 
-def reduction_script(asn_grism=None, asn_direct=None, test_run=False):
+def reduction_script(asn_grism=None, asn_direct=None):
 	"""
 	process_grism.reduction_script(asn_grism="ibhm39030_asn.fits", 
 								   asn_direct="ibhm39040_asn.fits")

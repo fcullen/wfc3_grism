@@ -49,7 +49,8 @@ def defaultOptions():
 
     ### the name of the wfc3 grism grating being used:
     options['GRISM_NAME'] = 'G141'
-    options['MAG_ZEROPOINT'] = 26.46
+    options['DIRECT_FILTER'] = 'F140W'
+    options['DIRECT_MAG_ZEROPOINT'] = 26.46
 
     ### an image used to align the raw 3dhst data:
     options['ALIGN_IMAGE'] = '/disk1/fc/FIGS/tests/candels_mosaics/gs_all_candels_ers_udf_f160w_v0.5_drz.fits'
@@ -64,7 +65,7 @@ def defaultOptions():
 
     ### directory where all config files are kept and unchanged, copy config files from
     ### here for a grism reduction:
-    options['GENERAL_CONFIG_FILE_DIRECTORY'] = '/disk1/fc/FIGS/tests/conf_files'
+    options['GENERAL_CONFIG_FILE_DIRECTORY'] = '/disk1/fc/grism_pipeline/g141_conf'
 
     ### configuration options
     options['CONFIG_FILE'] = 'WFC3.IR.G141.V2.0.conf'
@@ -96,8 +97,6 @@ def defaultOptions():
     ### general source detection parameters:
     options['DETECT_THRESH'] = 20     ## Default 2.5
     options['ANALYSIS_THRESH']  = 20  ## Default 2.5
-    options['GRISM_NAME'] = 'G141'
-    options['MAG_ZEROPOINT'] = 26.46
     options['FILTWAVE'] = 1392.
     options['DETECT_MINAREA'] = 5 ## Default 2.5
     options['BACK_SIZE'] = 256.

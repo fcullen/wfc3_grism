@@ -4,6 +4,14 @@
 		"selected_items":
 		[
 			[
+				"fits",
+				"fits_file"
+			],
+			[
+				"flu",
+				"fluxcube_filters"
+			],
+			[
 				"med",
 				"med_sky"
 			],
@@ -140,10 +148,6 @@
 				"tmps"
 			],
 			[
-				"fits",
-				"fits"
-			],
-			[
 				"hist",
 				"hist_ax"
 			],
@@ -239,6 +243,62 @@
 	},
 	"buffers":
 	[
+		{
+			"file": "/disk1/fc/FRONTIER_FIELDS/abell2744/run_g141_pipeline.py",
+			"settings":
+			{
+				"buffer_size": 2006,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/disk2/fc/Downloads/fcubeobjs.py",
+			"settings":
+			{
+				"buffer_size": 37040,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "contamination.py",
+			"settings":
+			{
+				"buffer_size": 6766,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/disk1/fc/FRONTIER_FIELDS/abell2744/mosaics/delete_header_keywords.py",
+			"settings":
+			{
+				"buffer_size": 493,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "direct_images.py",
+			"settings":
+			{
+				"buffer_size": 10485,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "correct_shifts.py",
+			"settings":
+			{
+				"buffer_size": 15098,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "source_catalogue.py",
+			"settings":
+			{
+				"buffer_size": 3806,
+				"line_ending": "Unix"
+			}
+		}
 	],
 	"build_system": "",
 	"command_palette":
@@ -267,6 +327,17 @@
 	},
 	"file_history":
 	[
+		"/disk1/fc/grism_pipeline/wfc3_grism/__init__.py",
+		"/disk1/fc/grism_pipeline/wfc3_grism/correct_shifts.py",
+		"/disk1/fc/grism_pipeline/wfc3_grism/contamination.py",
+		"/disk1/fc/grism_pipeline/wfc3_grism/multidrizzle.py",
+		"//lnxpack/amd64/iraf/extern/stsci_iraf-3.15/stsdas/pkg/analysis/slitless/axe/axesrc/fcubeobjs.py",
+		"/disk1/fc/grism_pipeline/wfc3_grism/grism_images.py",
+		"/disk2/fc/Downloads/fcubeobjs.py",
+		"/disk1/fc/FRONTIER_FIELDS/abell2744/G141/DATA/A2744-ROT-G141_final_shifts_xshift.txt",
+		"/disk1/fc/grism_pipeline/wfc3_grism/pipeline.py",
+		"/disk1/fc/grism_pipeline/wfc3_grism/direct_images.py",
+		"/disk1/fc/FRONTIER_FIELDS/abell2744/run_g141_pipeline.py",
 		"/home/fc/.tcshrc",
 		"/disk1/fc/FIGS/wfc3_grism/__init__.py",
 		"/home/fc/.bashrc",
@@ -391,6 +462,11 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"Flux_Image",
+			"wfc3_grismize",
+			"[msk]",
+			"figs",
+			"wfc_grism",
 			"figs",
 			"wfc3_grism",
 			"figs",
@@ -474,8 +550,206 @@
 	"groups":
 	[
 		{
+			"selected": 2,
 			"sheets":
 			[
+				{
+					"buffer": 0,
+					"file": "/disk1/fc/FRONTIER_FIELDS/abell2744/run_g141_pipeline.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2006,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1391,
+								1391
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "/disk2/fc/Downloads/fcubeobjs.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 37040,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1440.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "contamination.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6766,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								5787,
+								5787
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1710.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "/disk1/fc/FRONTIER_FIELDS/abell2744/mosaics/delete_header_keywords.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 493,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								154,
+								154
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "direct_images.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 10485,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								6256,
+								6256
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1215.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "correct_shifts.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 15098,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 135.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "source_catalogue.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3806,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 270.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
 			]
 		}
 	],

@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 
 from pyraf import iraf
 
+from astropy.io import fits
+
 def register_fluxcube_images(fluxcube_filters):
     """
     Runs sregister assuming the images are already aligned with a larger mosiac
@@ -149,8 +151,6 @@ def make_zeropoint_file(fluxcube_filters):
     ### open the file:
     outfile = open('zeropoints.lis','w')
 
-    root = wfc3_grism.options['ROOT_DIRECT']
-
     ### generate the lines:
     lines=[]
     for ib, band in enumerate(fluxcube_filters):
@@ -173,10 +173,11 @@ def setup_fluxcube():
     ### register the images to the pointing:
     register_fluxcube_images(fluxcube_filters)
 
-    ### make the zeropoint file:
+    ### make the zeropoint file ('zeropoints.lis'):
     make_zeropoint_file(fluxcube_filters)
 
     ### iraf.flpr:
+    wfc3_grism.utils.iraf_flpr()
     wfc3_grism.utils.iraf_flpr()
 
     ### run fcube prep:

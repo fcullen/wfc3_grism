@@ -377,10 +377,11 @@ def align_direct_to_reference(verbose=True, n_iter=20, drizzled_image=True):
 
 		shiftF.write('%s_final_shifts_yshift.txt' %(root))
 
-		#### Apply the alignment shifts to the shiftfile
+		#### Apply the alignment shifts to the shiftfile, also don't apply the
+		#### rotation this time:
 		shiftF.xshift = list(np.array(shiftF.xshift)-xsh)
 		shiftF.yshift = list(np.array(shiftF.yshift)-np.array(shiftF.yshift))
-		shiftF.rotate = list((np.array(shiftF.rotate)+rot) % 360)
+		shiftF.rotate = list(np.zeros_like(np.array(shiftF.rotate)))
 		shiftF.scale = list(np.array(shiftF.scale)*scale)
 
 		shiftF.write('%s_final_shifts_xshift.txt' %(root))
