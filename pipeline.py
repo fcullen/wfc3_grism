@@ -101,17 +101,20 @@ def reduction_script(asn_grism=None, asn_direct=None):
 	wfc3_grism.showMessage('STAGE IV: MAKING SOURCE CATALOGUE')
 	wfc3_grism.source_catalogue.make_source_catalogue()
 
-	### now set up files for the fluxcuve:
-	wfc3_grism.showMessage('STAGE V: SETTING UP FLUXCUBE')
-	wfc3_grism.contamination.setup_fluxcube()
+	### now check if there is a pre-made input direct catalogue,
+	### since the segementaion immge for the fluxcude has been made
+	### can just substitute the pre-made catalogue for the one made above:
+	if wfc3_grism.options['PRE_MADE_INPUT_CATALOGUE']:
+		wfc3_grism.source_catalogue.add_objects_from_premade_catalogue(extraction_image=wfc3_grism.options['IMAGE_USED_FOR_CATALOGUE'],
+										                               pre_made_catalogue=wfc3_grism.options['PRE_MADE_INPUT_CATALOGUE'])
 
 	### set up final config parameters for the grism run:
-	wfc3_grism.showMessage('STAGE VI: FINAL PREPARATION: TUNING CONFIGURATION FILES, MAKING AXE LIST')
+	wfc3_grism.showMessage('STAGE V: FINAL PREPARATION: TUNING CONFIGURATION FILES, MAKING AXE LIST')
 	set_confguration_parameters()
 	wfc3_grism.utils.make_aXe_lis(asn_grism_file, asn_direct_file)
 
 	### now start the first aXe routine: iolprep:
-	wfc3_grism.showMessage('STAGE VII: RUNNING AXE.IOLPREP')    
+	wfc3_grism.showMessage('STAGE VI: RUNNING AXE.IOLPREP')    
 	wfc3_grism.utils.iraf_flpr()
 
 	iraf.iolprep(mdrizzle_ima='%s_drz.fits' %wfc3_grism.options['ROOT_DIRECT'],
@@ -119,7 +122,7 @@ def reduction_script(asn_grism=None, asn_direct=None):
 				 dimension_in=wfc3_grism.options["AXE_EDGES"])
 
 	### start the aXe routine: axeprep:
-	wfc3_grism.showMessage('STAGE VIII: RUNNING AXE.AXEPREP')    
+	wfc3_grism.showMessage('STAGE VII: RUNNING AXE.AXEPREP')    
 	### cange the root directort:
 	os.chdir(wfc3_grism.options['ROOT_DIR'])
 	### check first whether using the 3D-HST master skies or not:
@@ -138,6 +141,12 @@ def reduction_script(asn_grism=None, asn_direct=None):
 				 backims=backim, 
 				 mfwhm=3.0,
 				 norm=False)
+
+	### now set up files for the fluxcube:
+	os.chdir('./DATA')
+	wfc3_grism.showMessage('STAGE VIII: SETTING UP FLUXCUBE')
+	wfc3_grism.contamination.setup_fluxcube()
+	os.chdir(wfc3_grism.options['ROOT_DIR'])
 
 	### start the aXe routine: axecore:
 	wfc3_grism.showMessage('STAGE IX: RUNNING AXE.AXECORE')

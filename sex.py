@@ -784,7 +784,7 @@ class mySexCat(aXe2html.sexcat.sextractcat.SexCat):
                 exec(str)
             
             return out
-    
+
     def makeRaDec(self):
         """
         makeRaDec()

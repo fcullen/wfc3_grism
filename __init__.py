@@ -50,7 +50,7 @@ def defaultOptions():
     ### the name of the wfc3 grism grating being used:
     options['GRISM_NAME'] = 'G141'
     options['DIRECT_FILTER'] = 'F140W'
-    options['DIRECT_MAG_ZEROPOINT'] = 26.46
+    options['MAG_ZEROPOINT'] = 26.46
 
     ### an image used to align the raw 3dhst data:
     options['ALIGN_IMAGE'] = '/disk1/fc/FIGS/tests/candels_mosaics/gs_all_candels_ers_udf_f160w_v0.5_drz.fits'
@@ -84,6 +84,7 @@ def defaultOptions():
 
     ### option to input a pre-made source catalog to the reduction pipeline:
     options['PRE_MADE_INPUT_CATALOGUE'] = None
+    options['PRE_MADE_INPUT_CATALOGUE_FILTER'] = 'F1537W'
     options['PRE_MADE_SEGMENTATION_MAP'] = None
 
     ### the detection image and band for making source catalogue:
@@ -206,7 +207,7 @@ def showOptions(outfile=None):
         fp = open(outfile,"w")
         fp.write('#######################################\n')
         fp.write('###                                 ###\n')
-        fp.write('###       %s.%s      ###\n' %(options['OBS'], __version__))
+        fp.write('###       %s     ###\n' %(options['OBS']))
         fp.write('###                                 ###\n')
         fp.write('###    %s     ###\n' %time.asctime())
         fp.write('###                                 ###\n')

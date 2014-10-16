@@ -60,6 +60,8 @@ def process_direct_images(asn_direct_file):
                                        driz_cr=False,
                                        skysub=True)
 
+    shutil.copy('%s_drz.fits' %(wfc3_grism.options['ROOT_DIRECT']), 'INITIAL_SHIFTED_DRZ.fits')
+
     ### cut out a region of the CANDEL image to use to align the grism exposures:
     wfc3_grism.showMessage('CUTTING OUT CANDELS REGION TO ALIGN')
     wfc3_grism.correct_shifts.run_sregister_for_align_image(mosiac_drz=wfc3_grism.options['ALIGN_IMAGE'])

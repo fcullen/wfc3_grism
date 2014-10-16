@@ -59,7 +59,7 @@ def process_grism_images(asn_grism_file):
 			 grism_sky_subtraction(grism_flt='%s_flt.fits' %(grism_exposure),
 			 					   grism_segmap='%s.seg.fits' %(grism_exposure),
 			 					   show=True)
-		### set skysub to false for the ultidrizzle tasks below:
+		### set skysub to false for the multidrizzle tasks below:
 		skysub = False
 	else:
 		### do sky subtraction in Multidrizzle

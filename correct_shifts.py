@@ -237,13 +237,19 @@ def align_direct_to_reference(verbose=True, n_iter=20, drizzled_image=True):
 	### iterations:
 	xshift = 0
 	yshift = 0
+	rot = 0
+	scale = 1.
 
 	### empty line in the output to make things clearer:
 	print ""
 
-	### now loop through the process:
+	### now loop through the process until xrms and yrms both < 0.5
+	### or run out of number of iterations:
+	xrms, yrms = 100, 100
+	toler = 2
 	iteration = 0
-	while(iteration < n_iter):
+	max_iter = 5
+	while ((xrms > 0.1) | (yrms > 0.1)) & (iteration <= max_iter):
 
 		print "Running matching algorithm on iteration #%d" %(iteration)
 
@@ -270,7 +276,7 @@ def align_direct_to_reference(verbose=True, n_iter=20, drizzled_image=True):
 		status = iraf.xyxymatch(input="direct.xy", 
 								reference="align.xy",
 								output="align.match",
-								tolerance=wfc3_grism.options['ALIGN_TOLERANCE'], 
+								tolerance=2**toler, 
 								separation=0, 
 								verbose=True, 
 								Stdout=1)
@@ -284,7 +290,7 @@ def align_direct_to_reference(verbose=True, n_iter=20, drizzled_image=True):
 
 		iraf.geomap(input="align.match", 
 					database="align.map",
-					fitgeometry="rscale", 
+					fitgeometry="shift", 
 					interactive=False, 
 					xmin=iraf.INDEF, 
 					xmax=iraf.INDEF, 
@@ -314,6 +320,7 @@ def align_direct_to_reference(verbose=True, n_iter=20, drizzled_image=True):
 
 		### update iteration counter:
 		iteration += 1
+		toler += 1
 
 		print 'Shift iteration #%d, xshift=%f, yshift=%f, rot=%f, scl=%f (rms: %5.2f,%5.2f)' %(iteration, xshift, yshift, rot, scale, xrms, yrms)
 
@@ -339,7 +346,7 @@ def align_direct_to_reference(verbose=True, n_iter=20, drizzled_image=True):
 
 		#### Get reference angle from first image in the ASN file:
 		asn = wfc3_grism.utils.ASNFile('%s_asn.fits' %(root))
-		alpha = (180. - fits.getheader(asn.exposures[0]+'_flt.fits', 1)['PA_APER']) / (360. * 2 * np.pi)
+		alpha = (180. - fits.getheader(asn.exposures[0]+'_flt.fits', 1)['PA_APER']) / 360. * 2 * np.pi
 
 		### Get the drizzle scale from the MultiDrizzle '.run' file:
 		for line in open('%s.run' %(root),'r'):
@@ -377,11 +384,14 @@ def align_direct_to_reference(verbose=True, n_iter=20, drizzled_image=True):
 
 		shiftF.write('%s_final_shifts_yshift.txt' %(root))
 
+		### re-open the shiftfile:
+		shiftF = ShiftFile('%s_initial_shifts.txt' %(root))
+
 		#### Apply the alignment shifts to the shiftfile, also don't apply the
 		#### rotation this time:
 		shiftF.xshift = list(np.array(shiftF.xshift)-xsh)
 		shiftF.yshift = list(np.array(shiftF.yshift)-np.array(shiftF.yshift))
-		shiftF.rotate = list(np.zeros_like(np.array(shiftF.rotate)))
+		shiftF.rotate = list((np.array(shiftF.rotate)+rot) % 360)
 		shiftF.scale = list(np.array(shiftF.scale)*scale)
 
 		shiftF.write('%s_final_shifts_xshift.txt' %(root))

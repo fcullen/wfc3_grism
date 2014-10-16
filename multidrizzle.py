@@ -160,12 +160,20 @@ def make_drizzled_contamination_image(asn_grism_file):
     ### get the asn girsm object:
     asn_grism = wfc3_grism.utils.ASNFile(asn_grism_file)
 
+    ## copy over the raw grism flt files:
+    for exp in asn_grism.exposures:
+        shutil.copy('../RAW/%s_flt.fits' %exp, './')
+
     for exp in asn_grism.exposures:
         ### copy OUTPUT_G141/*_CONT.fits into existing grism FLT files in DATA directory
         flt = fits.open('%s_flt.fits' %exp,'update')
         cont = fits.open('../OUTPUT_%s/%s_flt_2.CONT.fits' %(wfc3_grism.options['GRISM_NAME'],
                                                              exp))
-        flt[1].data  = cont[1].data
+
+        original_image = np.copy(flt[1].data)
+        contamination_image = np.copy(cont[1].data)
+
+        flt[1].data  = contamination_image
         
         flt.flush()
 
@@ -194,8 +202,8 @@ def make_drizzled_contamination_image(asn_grism_file):
                       driz_cr=False,
                       driz_cr_snr='6 3.0',
                       driz_cr_scale='1.6 0.7',
-                      final_scale = wfc3_grism.options['DRZSCALE'], 
-                      final_pixfrac = wfc3_grism.options['PIXFRAC'],
+                      final_scale = 0.128254, 
+                      final_pixfrac = 1.0,
                       driz_combine=True,
                       final_wht_type='IVM',
                       clean=False)
@@ -226,6 +234,17 @@ def make_drizzled_contamination_image(asn_grism_file):
                       driz_combine=True,
                       final_wht_type='IVM',
                       clean=False)
+
+    ### make residual image:
+    shutil.copy('%s_drz.fits' %(wfc3_grism.options['ROOT_GRISM']), '%s_RESIDUAL_drz.fits' %(wfc3_grism.options['ROOT_GRISM']))
+    resid_hdu = fits.open('%s_RESIDUAL_drz.fits' %(wfc3_grism.options['ROOT_GRISM']), 'update')
+
+    obs_drz = np.copy(fits.open('%s_drz.fits' %(wfc3_grism.options['ROOT_GRISM']))[1].data)
+    cont_drz = np.copy(fits.open('%s_CONT_drz.fits' %(wfc3_grism.options['ROOT_GRISM']))[1].data)
+
+    resid_hdu[1].data = (obs_drz - cont_drz)
+    resid_hdu.flush()
+    resid_hdu.close()
 
     ### clean up:
     clean_multidrizzle_output()

@@ -335,7 +335,7 @@ def get_package_data(dataname):
         return get_loader(rootname).get_data(path)
     except:
         ### Hardwired  in case relative import doesn't work
-        fp = open('/research/HST/GRISM/3DHST/progs/threedhst/data/'+dataname)
+        fp = open('/disk1/fc/grism_pipeline/wfc3_grism/data'+dataname)
         output = fp.read()
         fp.close()
         return output
