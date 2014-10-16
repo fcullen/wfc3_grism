@@ -370,31 +370,15 @@ def align_direct_to_reference(verbose=True, n_iter=20, drizzled_image=True):
 
 	#### Read the shiftfile
 	if drizzled_image:
+
 		shiftF = ShiftFile('%s_initial_shifts.txt' %(root))
 
-		#### Apply the alignment shifts to the shiftfile
-		#### NB there's a bug in multidrizzle so that sometimes it only applies
-		#### either the x or y shift but not both.
-		#### Therefore make 2 shiftfiles, one with only x-shift, one with only
-		#### y-shift. And run multidrizlle twice for both shifts to be applied!
-		shiftF.xshift = list(np.array(shiftF.xshift)-np.array(shiftF.xshift))
+		shiftF.xshift = list(np.array(shiftF.xshift)-xsh)
 		shiftF.yshift = list(np.array(shiftF.yshift)-ysh)
 		shiftF.rotate = list((np.array(shiftF.rotate)+rot) % 360)
 		shiftF.scale = list(np.array(shiftF.scale)*scale)
 
-		shiftF.write('%s_final_shifts_yshift.txt' %(root))
-
-		### re-open the shiftfile:
-		shiftF = ShiftFile('%s_initial_shifts.txt' %(root))
-
-		#### Apply the alignment shifts to the shiftfile, also don't apply the
-		#### rotation this time:
-		shiftF.xshift = list(np.array(shiftF.xshift)-xsh)
-		shiftF.yshift = list(np.array(shiftF.yshift)-np.array(shiftF.yshift))
-		shiftF.rotate = list((np.array(shiftF.rotate)+rot) % 360)
-		shiftF.scale = list(np.array(shiftF.scale)*scale)
-
-		shiftF.write('%s_final_shifts_xshift.txt' %(root))
+		shiftF.write('%s_final_shifts.txt' %(root))
 
 	else:
 		### use the default shift file in wfc3_grism data folder:

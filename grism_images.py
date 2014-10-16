@@ -31,11 +31,12 @@ def process_grism_images(asn_grism_file):
 	#### also just use one of the shift files (x or y not really importrant here)
 	wfc3_grism.showMessage('RUNNING MULTIDRIZZLE ON GRISM IMAGES')
 	wfc3_grism.multidrizzle.multidrizzle_run(asn_grism_file, 
-									   shiftfile='%s_final_shifts_xshift.txt' %(wfc3_grism.options['ROOT_GRISM']), 
+									   shiftfile='%s_final_shifts.txt' %(wfc3_grism.options['ROOT_GRISM']), 
 									   pixfrac=1.0, 
 									   final_scale=0.128254, 
 									   driz_cr=True,
-									   skysub=True)
+									   skysub=True,
+									   updatewcs=True)
 
 	#### blot back to original exposures (now with cosmic ray rejection and background subtraction):
 	wfc3_grism.showMessage('RUNNING BLOT ON DRIZZLED GRISM IMAGE')
@@ -70,20 +71,22 @@ def process_grism_images(asn_grism_file):
 	#### apply the xshifts:
 	wfc3_grism.showMessage('RE-RUNNING MULTIDRIZZLE WITH BACKGROUND SUBTRACTED GRISM EXPOSURES')
 	wfc3_grism.multidrizzle.multidrizzle_run(asn_grism_file, 
-									   shiftfile='%s_final_shifts_xshift.txt' %(wfc3_grism.options['ROOT_GRISM']), 
+									   shiftfile='%s_final_shifts.txt' %(wfc3_grism.options['ROOT_GRISM']), 
 									   pixfrac=1.0, 
 									   final_scale=0.128254, 
 									   driz_cr=True,
-									   skysub=skysub)
+									   skysub=skysub,
+									   updatewcs=True)
 
 	#### finally drizzle to the desired resolution
 	#### apply the y-shifts:
 	wfc3_grism.multidrizzle.multidrizzle_run(asn_grism_file, 
-									   shiftfile='%s_final_shifts_yshift.txt' %(wfc3_grism.options['ROOT_GRISM']), 
+									   shiftfile='%s_final_shifts.txt' %(wfc3_grism.options['ROOT_GRISM']), 
 									   pixfrac=0.8, 
 									   final_scale=0.06, 
 									   driz_cr=False,
-									   skysub=skysub)
+									   skysub=skysub,
+									   updatewcs=False)
 
 def make_grism_shiftfile(asn_grism_file):
 	"""
@@ -96,40 +99,38 @@ def make_grism_shiftfile(asn_grism_file):
 	alignment
 	"""
 
-	for shift_type in ['xshift', 'yshift']:
+	#### Read shiftfile and ASN table
+	sf = wfc3_grism.correct_shifts.ShiftFile('%s_final_shifts.txt' %(wfc3_grism.options['ROOT_DIRECT']))
+	asn = wfc3_grism.utils.ASNFile(asn_grism_file)
+    
+	if sf.nrows == len(asn.exposures):
+		#### Assume one direct image for each grism images, so just
+		#### change the image names in the shiftfile to the grism exposures
+		for i,exp in enumerate(asn.exposures):
+			sf.images[i] = exp+'_flt.fits'
+	else:
+		#### Have different number of grism and direct images.  Just use the 
+		#### shifts/rotations for the first direct image
+		xs = sf.xshift[0]
+		ys = sf.yshift[0]
+		rot = sf.rotate[0]
+		scl = sf.scale[0]
+		sf.images = []
+		sf.xshift = []
+		sf.yshift = []
+		sf.rotate = []
+		sf.scale = []
+		for i,exp in enumerate(asn.exposures):
+			sf.images.append(exp+'_flt.fits')
+			sf.xshift.append(xs)
+			sf.yshift.append(ys)
+			sf.rotate.append(rot)
+			sf.scale.append(scl)
 
-		#### Read shiftfile and ASN table
-		sf = wfc3_grism.correct_shifts.ShiftFile('%s_final_shifts_%s.txt' %(wfc3_grism.options['ROOT_DIRECT'], shift_type))
-		asn = wfc3_grism.utils.ASNFile(asn_grism_file)
-	    
-		if sf.nrows == len(asn.exposures):
-			#### Assume one direct image for each grism images, so just
-			#### change the image names in the shiftfile to the grism exposures
-			for i,exp in enumerate(asn.exposures):
-				sf.images[i] = exp+'_flt.fits'
-		else:
-			#### Have different number of grism and direct images.  Just use the 
-			#### shifts/rotations for the first direct image
-			xs = sf.xshift[0]
-			ys = sf.yshift[0]
-			rot = sf.rotate[0]
-			scl = sf.scale[0]
-			sf.images = []
-			sf.xshift = []
-			sf.yshift = []
-			sf.rotate = []
-			sf.scale = []
-			for i,exp in enumerate(asn.exposures):
-				sf.images.append(exp+'_flt.fits')
-				sf.xshift.append(xs)
-				sf.yshift.append(ys)
-				sf.rotate.append(rot)
-				sf.scale.append(scl)
-
-			sf.nrows = len(asn.exposures)
-	        
-		#### Write the new shiftfile
-		sf.write('%s_final_shifts_%s.txt' %(wfc3_grism.options['ROOT_GRISM'], shift_type))
+		sf.nrows = len(asn.exposures)
+        
+	#### Write the new shiftfile
+	sf.write('%s_final_shifts.txt' %(wfc3_grism.options['ROOT_GRISM']))
 
 def make_grism_exposure_segmaps(asn_grism_file, sigma=0.5):
 	"""

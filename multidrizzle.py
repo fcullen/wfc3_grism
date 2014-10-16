@@ -10,7 +10,7 @@ import numpy as np
 
 from astropy.io import fits
 
-def multidrizzle_run(asn_file, shiftfile, pixfrac=0.8, final_scale=0.06, driz_cr=False, skysub=True):
+def multidrizzle_run(asn_file, shiftfile, pixfrac=0.8, final_scale=0.06, driz_cr=False, skysub=True, updatewcs=True):
     """
     Performs an multidrizzle run on a set of input direct images.
 
@@ -30,7 +30,7 @@ def multidrizzle_run(asn_file, shiftfile, pixfrac=0.8, final_scale=0.06, driz_cr
                       shiftfile=shiftfile,
                       output ='', 
                       skysub = skysub, 
-                      updatewcs =True,
+                      updatewcs =updatewcs,
                       static=True,
                       static_sig=4.0,
                       driz_separate=True, 
@@ -187,36 +187,9 @@ def make_drizzled_contamination_image(asn_grism_file):
     ### unlearn the routine:
     iraf.unlearn('multidrizzle')
 
-    ### first apply x_shift
-    iraf.multidrizzle(input='%s_CONT_asn.fits' %(wfc3_grism.options['ROOT_GRISM']),
-                      shiftfile='%s_final_shifts_xshift.txt' %(wfc3_grism.options['ROOT_GRISM']),
-                      output ='', 
-                      skysub = False, 
-                      updatewcs =True,
-                      static=True,
-                      static_sig=4.0,
-                      driz_separate=True, 
-                      driz_sep_kernel='turbo',
-                      median=True, 
-                      blot=True, 
-                      driz_cr=False,
-                      driz_cr_snr='6 3.0',
-                      driz_cr_scale='1.6 0.7',
-                      final_scale = 0.128254, 
-                      final_pixfrac = 1.0,
-                      driz_combine=True,
-                      final_wht_type='IVM',
-                      clean=False)
-
-    ### iraf flpr()
-    wfc3_grism.utils.iraf_flpr()
-
-    ### unlearn the routine:
-    iraf.unlearn('multidrizzle')
-
     ### now apply y_shift
     iraf.multidrizzle(input='%s_CONT_asn.fits' %(wfc3_grism.options['ROOT_GRISM']),
-                      shiftfile='%s_final_shifts_yshift.txt' %(wfc3_grism.options['ROOT_GRISM']),
+                      shiftfile='%s_final_shifts.txt' %(wfc3_grism.options['ROOT_GRISM']),
                       output ='', 
                       skysub = False, 
                       updatewcs =True,

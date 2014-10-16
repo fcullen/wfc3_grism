@@ -76,11 +76,12 @@ def process_direct_images(asn_direct_file):
 
     ### first pass cosmic-ray rejection:
     wfc3_grism.multidrizzle.multidrizzle_run(asn_direct_file, 
-                                       shiftfile='%s_final_shifts_yshift.txt' %(wfc3_grism.options['ROOT_DIRECT']), 
+                                       shiftfile='%s_final_shifts.txt' %(wfc3_grism.options['ROOT_DIRECT']), 
                                        pixfrac=1.0, 
                                        final_scale=0.128254, 
                                        driz_cr=True,
-                                       skysub=False)
+                                       skysub=False,
+                                       updatewcs=True)
 
     ### blot back to original exposures (now with cosmic ray rejection and background subtraction):
     wfc3_grism.showMessage('RUNNING BLOT ON DRIZZLED DIRECT IMAGE')
@@ -103,11 +104,12 @@ def process_direct_images(asn_direct_file):
     ### final drizzle to 1/2 pixel resolution with the background subtraction:
     wfc3_grism.showMessage('FINAL MULTIDRIZZLE WITH THE NEW SHIFTS + BACKGROUND SUBTRACTION')
     wfc3_grism.multidrizzle.multidrizzle_run(asn_direct_file, 
-                                       shiftfile='%s_final_shifts_xshift.txt' %(wfc3_grism.options['ROOT_DIRECT']),
+                                       shiftfile='%s_final_shifts.txt' %(wfc3_grism.options['ROOT_DIRECT']),
                                        pixfrac=0.8, 
                                        final_scale=0.06, 
                                        driz_cr=False,
-                                       skysub=False)
+                                       skysub=False,
+                                       updatewcs=False)
 
 
     ### now run sregister on CANDELS mosaic if using one as a detection image:
