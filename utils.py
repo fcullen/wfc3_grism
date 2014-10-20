@@ -381,7 +381,7 @@ def copy_over_fresh_flt_files(asn_filename, from_path='../RAW'):
         # now see that the flat-flied applied to image is the best available and apply
         # better flat if one is avaiable, can comment this out if just want to stick
         # with the original flat field.
-        apply_best_flat('%s_flt.fits' %(exp), verbose=True)
+        #apply_best_flat('%s_flt.fits' %(exp), verbose=True)
 
 def find_best_flat(flt_fits, verbose=True):
     """

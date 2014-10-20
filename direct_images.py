@@ -113,7 +113,7 @@ def process_direct_images(asn_direct_file):
 
 
     ### now run sregister on CANDELS mosaic if using one as a detection image:
-    if wfc3_grism.options['OBS'] != 'FRONTIER_FIELDS':
+    if wfc3_grism.options['ADD_IMAGE_BORDER'] == True:
         wfc3_grism.showMessage('ADDING BORDER TO DRZ AND MAKING FINCAL CANDELS CUTOUT')
         add_border_to_drz(drz_image='%s_drz.fits' %(wfc3_grism.options['ROOT_DIRECT']), extension=500.)
 

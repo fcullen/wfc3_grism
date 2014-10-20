@@ -123,8 +123,11 @@ def defaultOptions():
 
     #### Axe extraction geometry to get objects outside the edges
     #### of the grism images.  Currently doesn't work correctly and 
-    #### the model is offset w.r.t. the observed spectra.
+    #### the model is offset w.r.t. the observed spectra. If you want
+    #### these objects need to add a border around the edge of the 
+    #### direct image:
     options['AXE_EDGES'] = "300,300,0,0"
+    options['ADD_IMAGE_BORDER'] = True
 
     #### aXe extraction geometry
     #### currently set slitless_geom=NO, orient=NO in aXecore
