@@ -74,7 +74,7 @@ def reduction_script(asn_grism=None, asn_direct=None):
 
 	wfc3_grism.utils.copy_over_fresh_flt_files(asn_filename=wfc3_grism.options['ASN_GRISM'], from_path='../RAW')
 
-	#### adjust the target names for the grism and direct files
+	### adjust the target names for the grism and direct files
 	if asn_direct:
 		asn_direct_file = wfc3_grism.utils.make_targname_asn(asn_direct)
 	asn_grism_file = wfc3_grism.utils.make_targname_asn(asn_grism)
