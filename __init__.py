@@ -22,6 +22,9 @@ import contamination
 ### the main program:
 import pipeline
 
+### post-production:
+import plotting
+
 options = {}
 
 def defaultOptions():
