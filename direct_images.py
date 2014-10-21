@@ -237,7 +237,7 @@ def direct_image_sky_subtraction(flt, segmap, sig_clip=3.0, show=True):
         fig, ax = plt.subplots(figsize=(5.5, 5.5))
         final_data = im_data - med_sky
         ax.hist(final_data[mask_sky].flatten(), bins=np.arange(-2.0, 2.0, 0.02), 
-                histtype='step', color='k', lw=1.0)
+                histtype='step', color='red', lw=1.0)
         fig.savefig('%s_background_historgram.pdf' %(flt.split('_flt.fits')[0]))
 
 

@@ -103,3 +103,4 @@ def make_inspection_plots():
 		fig.savefig('./%s.pdf' %(idx))
 
 	os.chdir('../')
+

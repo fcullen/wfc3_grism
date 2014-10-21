@@ -5,6 +5,8 @@ import astropy.stats as stats
 
 import matplotlib.pyplot as plt
 
+from scipy.optimize import curve_fit
+
 import numpy as np
 
 import os
@@ -263,6 +265,66 @@ def find_best_sky(im_hdu, seg_hdu):
 
 	return best_sky
 
+def correct_background_residual(im_data, seg_data, grism_flt, show=True):
+	"""
+	Finds the peak of the backgroud histogram across all pixels,
+	for the background subtracted image. 
+
+	There normally a slight offset from zero (~ 0.005e/s).
+
+	The final image can then be corrected for this offset
+	"""
+
+	### apply seg mask:
+	seg_mask = (seg_data == 0)
+
+	### get the background pixels:
+	background = (im_data[seg_mask].flatten())
+	background = background[np.isfinite(background)]
+
+	### fit the final background:
+	hist, bin_edges = np.histogram(background, bins=np.arange(-1.5, 1.5, 0.01))
+	bin_centres = (bin_edges[:-1] + bin_edges[1:])/2
+
+	### Define model function to be used to fit to the data above:
+	def gauss(x, *p):
+		A, mu, sigma = p
+		return A * np.exp(-(x-mu)**2/(2.*sigma**2))
+
+	### p0 is the initial guess for the fitting coefficients
+	p0 = [1., 0., 1.]
+	coeff, var_matrix = curve_fit(gauss, bin_centres, hist, p0=p0)
+
+	### get the fitted curve
+	bck = np.arange(-1.5, 1.5, 0.0001)
+	hist_fit = gauss(bck, *coeff)
+
+	### find the index of fit maximum:
+	idx = np.argmin(np.abs(hist_fit - max(hist_fit)))
+
+	### get out the background redsidual
+	back_res = bck[idx]
+
+	if show():
+
+		fig, ax = plt.subplots(figsize=(5,5))
+		ax.minorticks_on()
+
+		ax.hist(background - back_res, bins=np.arange(-1.5, 1.5, 0.01), color='k', histtype='step', lw=1.,
+				label=r'$\mathrm{Final}$ $\mathrm{G141}$')
+
+		ax.set_xlim(-1.5, 1.5)
+		ax.set_yticklabels([])
+
+		ax.set_ylabel(r'$\mathrm{N}$', fontsize=15)
+		ax.set_xlabel(r'$\mathrm{e^{-}/s}$', fontsize=15)
+
+		ax.legend(frameon=False, loc='upper left', fontsize=14)
+
+		fig.savefig('%s_background_histogram.pdf' %(grism_flt.split('_flt.fits')[0]))
+
+	return back_res
+
 def grism_sky_subtraction(grism_flt, grism_segmap, stat='median', show=False):
 	"""
 	Performs the sky-subtraction on each of the grism exposures.
@@ -342,8 +404,14 @@ def grism_sky_subtraction(grism_flt, grism_segmap, stat='median', show=False):
 
 		fig.savefig('%s_background.pdf' %(grism_flt.split('_flt.fits')[0]))
 
+	### get the final background residual to subtract:
+	back_res = correct_background_residual(im_data=np.copy(flt[1].data), 
+										   seg_data=seg, 
+										   grism_flt=grism_flt,
+										   show=True)
+
 	### multiply back out by the flat-field:
-	final_image = flt_hdu[1].data * get_flat()
+	final_image = (flt_hdu[1].data - back_res) * get_flat()
 
 	### re-open the grism image:
 	flt_hdu = fits.open(grism_flt, mode='update')
