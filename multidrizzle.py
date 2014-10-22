@@ -10,7 +10,7 @@ import numpy as np
 
 from astropy.io import fits
 
-def multidrizzle_run(asn_file, shiftfile, pixfrac=0.8, final_scale=0.06, driz_cr=False, skysub=True, updatewcs=True):
+def multidrizzle_run(asn_file, shiftfile, pixfrac=0.8, final_scale=0.06, driz_cr=False, skysub=True, updatewcs=True, blot_back=True):
     """
     Performs an multidrizzle run on a set of input direct images.
 
@@ -36,7 +36,7 @@ def multidrizzle_run(asn_file, shiftfile, pixfrac=0.8, final_scale=0.06, driz_cr
                       driz_separate=True, 
                       driz_sep_kernel='turbo',
                       median=True, 
-                      blot=True, 
+                      blot=blot_back, 
                       driz_cr=driz_cr,
                       driz_cr_snr='6 3.0',
                       driz_cr_scale='1.6 0.7',
@@ -198,7 +198,7 @@ def make_drizzled_contamination_image(asn_grism_file):
                       driz_separate=True, 
                       driz_sep_kernel='turbo',
                       median=True, 
-                      blot=True, 
+                      blot=False, 
                       driz_cr=False,
                       driz_cr_snr='6 3.0',
                       driz_cr_scale='1.6 0.7',

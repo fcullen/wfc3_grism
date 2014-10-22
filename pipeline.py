@@ -132,6 +132,11 @@ def reduction_script(asn_grism=None, asn_direct=None):
 	elif wfc3_grism.options['GRISM_NAME'] == 'G102':
 		backim = 'WFC3.IR.G102.sky.V1.0.fits'
 
+	if wfc3_grism.options['CUSTOM_MASTER_BACKGROUND_SUBTRACTION'] == False:
+		backgr=True
+	else:
+		backgr=False
+
 	### now run the routine:
 	wfc3_grism.utils.iraf_flpr()
 	iraf.axeprep(inlist='%s_prep.lis' %(wfc3_grism.options['ROOT_GRISM']),

@@ -50,7 +50,8 @@ def process_direct_images(asn_direct_file):
                                        pixfrac=1.0, 
                                        final_scale=0.128254, 
                                        driz_cr=True,
-                                       skysub=True)
+                                       skysub=True,
+                                       blot_back=True)
 
     ### now sample at 1/2 pixel scale for registering to CANDELS images:
     wfc3_grism.multidrizzle.multidrizzle_run(asn_direct_file, 
@@ -58,7 +59,8 @@ def process_direct_images(asn_direct_file):
                                        pixfrac=0.8, 
                                        final_scale=0.06, 
                                        driz_cr=False,
-                                       skysub=True)
+                                       skysub=True,
+                                       blot_back=False)
 
     shutil.copy('%s_drz.fits' %(wfc3_grism.options['ROOT_DIRECT']), 'INITIAL_SHIFTED_DRZ.fits')
 
@@ -81,7 +83,8 @@ def process_direct_images(asn_direct_file):
                                        final_scale=0.128254, 
                                        driz_cr=True,
                                        skysub=False,
-                                       updatewcs=True)
+                                       updatewcs=True,
+                                       blot_back=True)
 
     ### blot back to original exposures (now with cosmic ray rejection and background subtraction):
     wfc3_grism.showMessage('RUNNING BLOT ON DRIZZLED DIRECT IMAGE')
@@ -109,7 +112,8 @@ def process_direct_images(asn_direct_file):
                                        final_scale=0.06, 
                                        driz_cr=False,
                                        skysub=False,
-                                       updatewcs=False)
+                                       updatewcs=False,
+                                       blot_back=False)
 
 
     ### now run sregister on CANDELS mosaic if using one as a detection image:
