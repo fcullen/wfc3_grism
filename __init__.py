@@ -58,10 +58,6 @@ def defaultOptions():
     ### an image used to align the raw 3dhst data:
     options['ALIGN_IMAGE'] = '/disk1/fc/FIGS/tests/candels_mosaics/gs_all_candels_ers_udf_f160w_v0.5_drz.fits'
 
-    ### the tolerance, in pixels, used for matching objects in alignment procedure,
-    ### this can be estimated by run SExtractor on images if needs be.
-    options['ALIGN_TOLERANCE'] = 20
-
     ### provide single flt image if not multiple images to drizzle etc.
     options['SINGLE_FLT_DIRECT'] = None
     options['SINGLE_FLT_FILTER'] = 'F125W'
@@ -85,6 +81,11 @@ def defaultOptions():
     options['CUSTOM_MASTER_BACKGROUND_SUBTRACTION'] = True
     options['MASTER_SKIES'] = ['sky_cosmos.fits', 'sky_goodsn_hi.fits', 'sky_goodsn_lo.fits', 'sky_goodsn_vhi.fits']
 
+    ### the sigma used for estimating segmentation map used in background
+    ### subtractions, will generalyl chage for different reductions (e.g. 3D-HST, FIGS)
+    ### so is worth optimizing.
+    options['BACKGROUND_SEGMAP_SIGMA'] = 1.0
+
     ### option to input a pre-made source catalog to the reduction pipeline:
     options['PRE_MADE_INPUT_CATALOGUE'] = None
     options['PRE_MADE_INPUT_CATALOGUE_FILTER'] = 'F1537W'
@@ -107,6 +108,7 @@ def defaultOptions():
     options['DEBLEND_MINCONT'] = 0.01
 
     ### bands for the contamination estimation:
+    options['APPLY_FLUXCUBE_MODEL'] = True
     options['FLUXCUBE_FILTERS_DIR'] = '/disk1/fc/FIGS/tests/candels_mosaics'
     options['FLUXCUBE_FILTERS'] = [['/disk1/fc/FIGS/tests/candels_mosaics/gs_all_candels_ers_udf_f105w_v0.5_drz.fits', 'F125W', 1248.6, 26.23],
                                    ['/disk1/fc/FIGS/tests/candels_mosaics/gs_all_candels_ers_udf_f125w_v0.5_drz.fits', 'F160W', 1536.9, 25.95],

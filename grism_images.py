@@ -48,7 +48,7 @@ def process_grism_images(asn_grism_file):
 
 	#### generate segmentation map for each grism exposure:
 	wfc3_grism.showMessage('MAKING SEGEMENTAION MAPS FOR EACH GRISM EXPOSURE')
-	make_grism_exposure_segmaps(asn_grism_file, sigma=0.1)
+	make_grism_exposure_segmaps(asn_grism_file, sigma=wfc3_grism.options['BACKGROUND_SEGMAP_SIGMA'])
 
 	#### copy over fresh flt files to do final sky subtraction:
 	wfc3_grism.utils.copy_over_fresh_flt_files(wfc3_grism.options['ASN_GRISM'], from_path='../RAW')

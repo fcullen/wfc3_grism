@@ -127,10 +127,10 @@ def reduction_script(asn_grism=None, asn_direct=None):
 	os.chdir(wfc3_grism.options['ROOT_DIR'])
 	### check first whether using the 3D-HST master skies or not:
 
-	if wfc3_grism.options['GRISM_NAME'] == 'G141':
-		backim = 'WFC3.IR.G141.sky.V1.0.fits'
-	elif wfc3_grism.options['GRISM_NAME'] == 'G102':
-		backim = 'WFC3.IR.G102.sky.V1.0.fits'
+	# if wfc3_grism.options['GRISM_NAME'] == 'G141':
+	# 	backim = 'WFC3.IR.G141.sky.V1.0.fits'
+	# elif wfc3_grism.options['GRISM_NAME'] == 'G102':
+	# 	backim = 'WFC3.IR.G102.sky.V1.0.fits'
 
 	if wfc3_grism.options['CUSTOM_MASTER_BACKGROUND_SUBTRACTION'] == False:
 		backgr=True
@@ -141,16 +141,20 @@ def reduction_script(asn_grism=None, asn_direct=None):
 	wfc3_grism.utils.iraf_flpr()
 	iraf.axeprep(inlist='%s_prep.lis' %(wfc3_grism.options['ROOT_GRISM']),
 				 configs=wfc3_grism.options['FINAL_AXE_CONFIG'],
-				 backgr=False, 
-				 backims=backim, 
+				 backgr=backgr, 
+				 backims=wfc3_grism.options['SKY_BACKGROUND'], 
 				 mfwhm=3.0,
 				 norm=False)
 
 	### now set up files for the fluxcube:
-	os.chdir('./DATA')
-	wfc3_grism.showMessage('STAGE VIII: SETTING UP FLUXCUBE')
-	wfc3_grism.contamination.setup_fluxcube()
-	os.chdir(wfc3_grism.options['ROOT_DIR'])
+	if wfc3_grism.options['APPLY_FLUXCUBE_MODEL'] == True:
+		os.chdir('./DATA')
+		wfc3_grism.showMessage('STAGE VIII: SETTING UP FLUXCUBE')
+		wfc3_grism.contamination.setup_fluxcube()
+		os.chdir(wfc3_grism.options['ROOT_DIR'])
+		cont_model="fluxcube"
+	else:
+		cont_model="gauss"
 
 	### start the aXe routine: axecore:
 	wfc3_grism.showMessage('STAGE IX: RUNNING AXE.AXECORE')
@@ -167,7 +171,7 @@ def reduction_script(asn_grism=None, asn_direct=None):
 				 orient=wfc3_grism.options['FULL_EXTRACTION_GEOMETRY'], 
 				 exclude=False, 
 	 			 lambda_mark=wfc3_grism.options['FILTWAVE'], 
-				 cont_model="fluxcube", 
+				 cont_model=cont_model, 
 				 model_scale=4.0, 
 				 lambda_psf=wfc3_grism.options['FILTWAVE'],
 				 inter_type="linear", 
@@ -282,11 +286,6 @@ def check_3dhst_environment(makeDirs=True):
 			else:
 				raise IOError('Directory %s doesn\'t exist in %s.'
 							  %(dir,os.getcwd()))
-
-	if wfc3_grism.options['SKY_BACKGROUND'] is not None:
-		if not os.path.exists('CONF/'+wfc3_grism.options['SKY_BACKGROUND']):
-			raise IOError("options['SKY_BACKGROUND'] doesn't exist:" +   
-						  "CONF/"+wfc3_grism.options['SKY_BACKGROUND'])
 
 def cleanup_reduction_directories():
 
