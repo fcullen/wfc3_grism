@@ -17,25 +17,25 @@ def run_sregister_for_align_image(mosiac_drz):
 	cut out an area to use for aligning the images with tweakreg()
 	"""
 
-	### get the root name:
+	# get the root name:
 	root = wfc3_grism.options['ROOT_DIRECT']
 
-	### iraf flpr()
+	# iraf flpr()
 	wfc3_grism.utils.iraf_flpr()
 
-	### first unlearn the routine:
+	# first unlearn the routine:
 	iraf.unlearn('sregister')
 
-	### remove previous versions if they exist:
+	# remove previous versions if they exist:
 	try:
 		os.remove('%s_align_reference.fits' %(root))
 	except:
 		pass
 
-	### run sregister, put in a try-except because
-	### sregister crashes once it has completed when attempting
-	### to delete files it creates. By ignoring this error there is
-	### no change to the actual output:
+	# run sregister, put in a try-except because
+	# sregister crashes once it has completed when attempting
+	# to delete files it creates. By ignoring this error there is
+	# no change to the actual output:
 	try:
 		iraf.sregister(input=mosiac_drz,
 					   reference='%s_drz.fits[SCI]' %(root),
@@ -44,8 +44,7 @@ def run_sregister_for_align_image(mosiac_drz):
 	except:
 		pass
 
-
-	### cleanup files:
+	# cleanup files:
 	tmps_files = glob.glob('tmps*')
 	for tmps in tmps_files:
 		os.remove(tmps)

@@ -167,20 +167,31 @@ def setup_fluxcube():
     -> make the file with zeropoints etc ..
     """
 
-    ### get the fluxcube filters
+    # get the fluxcube filters
     fluxcube_filters = wfc3_grism.options['FLUXCUBE_FILTERS']
 
-    ### register the images to the pointing:
+    # register the images to the pointing:
     register_fluxcube_images(fluxcube_filters)
 
-    ### make the zeropoint file ('zeropoints.lis'):
+    # make the zeropoint file ('zeropoints.lis'):
     make_zeropoint_file(fluxcube_filters)
 
-    ### iraf.flpr:
+    # iraf.flpr:
     wfc3_grism.utils.iraf_flpr()
     wfc3_grism.utils.iraf_flpr()
 
-    ### run fcube prep:
+    # delete descriptors in _seg files
+    # or else you run into trouble with the blot call
+    # in iraf.fcubeprep
+    print 'Deleting descriptors in %s_seg.fits' %wfc3_grism.options['ROOT_DIRECT']
+    wfc3_grism.utils.delete_multidrizzle_descriptions('%s_seg.fits' %wfc3_grism.options['ROOT_DIRECT'],
+                                                       hdu_ext=0)
+
+    for filt in fluxcube_filters:
+        print 'Deleting descriptors in %s_drz.fits' %filt[1]
+        wfc3_grism.utils.delete_multidrizzle_descriptions('%s_drz.fits' %filt[1], hdu_ext=1)
+
+    # run fcube prep:
     iraf.fcubeprep(grism_image = '%s_drz.fits' %wfc3_grism.options['ROOT_GRISM'],
                    segm_image = '%s_seg.fits' %wfc3_grism.options['ROOT_DIRECT'],
                    filter_info = 'zeropoints.lis', 

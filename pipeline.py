@@ -63,6 +63,9 @@ def reduction_script(asn_grism=None, asn_direct=None):
 	### finally get all the config files in place:
 	copy_over_config_files()
 
+	### show the default rediction options:
+	wfc3_grism.showOptions(outfile=None)
+
 	#### change to the data directory:
 	os.chdir('./DATA')
 

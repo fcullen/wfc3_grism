@@ -796,3 +796,49 @@ def make_object_id_table():
                 file_out.write('%-15d%-15.7f%15.7f\n' %(ID, ra, dec))
     
     file_out.close()
+
+def delete_multidrizzle_descriptions(fits_file, hdu_ext=0):
+    """
+    Delete drizzle keywords so the blot doesn't crash.
+    Adapted from: 
+
+    https://www.stsci.edu/svn/ssb/stsci_python/stsdas/branches/stsdas_3_8_rc/stsdas/pkg/hst_calib/acs/axe/axesrc/fcubeprep.py
+    """
+
+    # open the image:
+    hdu = fits.open(fits_file, 'update')
+
+    n_del = 0
+
+    # list of keyord frames to be deleted
+    keynames = ['D%03iDATA', 'D%03iDEXP', 'D%03iOUDA', 'D%03iOUWE',
+                'D%03iOUCO', 'D%03iMASK', 'D%03iWTSC', 'D%03iKERN',
+                'D%03iPIXF', 'D%03iCOEF', 'D%03iXGIM', 'D%03iYGIM',
+                'D%03iLAM', 'D%03iROT',  'D%03iXSH',
+                'D%03iYSH',  'D%03iSFTU', 'D%03iSFTF', 'D%03iEXKY',
+                'D%03iINUN', 'D%03iOUUN', 'D%03iFVAL', 'D%03iINXC',
+                'D%03iINYC', 'D%03iOUXC', 'D%03iOUYC', 'D%03iGEOM',
+                'D%03iVER']
+
+    # go over an index indicating 
+    # an input image for multidrizzle
+    for index in range(100):
+
+        # go over all keyword frames
+        for key in keynames:
+
+            # form the actual keyword
+            drizz_keyname = key % (index+1)
+
+            for headkey in hdu[hdu_ext].header:
+                if headkey == drizz_keyname:
+                   del hdu[hdu_ext].header[headkey]
+                   n_del += 1
+
+    print "Deleted %d descriptors" %n_del
+
+    # update the image:
+    hdu.flush()
+
+    # close the image:
+    hdu.close()
