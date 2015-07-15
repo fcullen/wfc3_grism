@@ -87,8 +87,8 @@ def register_fluxcube_images(fluxcube_filters):
         
         ### plot histogram of object positions to check that registration has worked properly:
         ### set sextractor parameters: 
-        se.options['DETECT_THRESH']    = '5.'
-        se.options['ANALYSIS_THRESH']  = '5.'
+        se.options['DETECT_THRESH']    = '3.'
+        se.options['ANALYSIS_THRESH']  = '3.'
         
         ### sort out the calalog for the registered image:
         se.options['CATALOG_NAME'] = 'reg.cat'
@@ -121,9 +121,10 @@ def register_fluxcube_images(fluxcube_filters):
         
             separation[i] = min(sep)
         
+        print len(separation)
         fig, ax = plt.subplots(figsize=(5,5))
         ax.minorticks_on()
-        ax.hist(separation, bins=np.arange(-1.0, 1.0, 0.05), histtype='step', color='k')
+        ax.hist(separation, bins=np.arange(-5.0, 5.0, 0.05), histtype='step', color='k')
         ax.set_xlabel(r'$\mathrm{Separation}$ $/$ $\mathrm{arcsec}$', fontsize=14)
         ax.set_ylabel(r'$\mathrm{N}$', fontsize=14)
         fig.savefig('./%s_separation.pdf' %(filt[1]))

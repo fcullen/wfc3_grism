@@ -48,6 +48,9 @@ def reduction_script(asn_grism=None, asn_direct=None):
 	### make sure we're in the root directory of the reduction:
 	os.chdir(wfc3_grism.options['ROOT_DIR'])
 
+	### clean up and files there from previous reductions:
+	cleanup_reduction_directories()
+
 	#### timer to check how long the aXe process is taking:
 	start_time = time.time()
 
@@ -159,81 +162,81 @@ def reduction_script(asn_grism=None, asn_direct=None):
 	else:
 		cont_model="gauss"
 
-	### start the aXe routine: axecore:
-	wfc3_grism.showMessage('STAGE IX: RUNNING AXE.AXECORE')
+	# ### start the aXe routine: axecore:
+	# wfc3_grism.showMessage('STAGE IX: RUNNING AXE.AXECORE')
 
-	wfc3_grism.utils.iraf_flpr() 
+	# wfc3_grism.utils.iraf_flpr() 
 
-	iraf.axecore(inlist='%s_prep.lis' %(wfc3_grism.options['ROOT_GRISM']), 
-				 configs=wfc3_grism.options['FINAL_AXE_CONFIG'],
-				 back=False,
-				 extrfwhm=4.0, 
-				 drzfwhm=3.0, 
-				 backfwhm=4.0,
-				 slitless_geom=wfc3_grism.options['FULL_EXTRACTION_GEOMETRY'], 
-				 orient=wfc3_grism.options['FULL_EXTRACTION_GEOMETRY'], 
-				 exclude=False, 
-	 			 lambda_mark=wfc3_grism.options['FILTWAVE'], 
-				 cont_model=cont_model, 
-				 model_scale=4.0, 
-				 lambda_psf=wfc3_grism.options['FILTWAVE'],
-				 inter_type="linear", 
-				 np=10, 
-				 interp=0, 
-				 smooth_lengt=0,
-				 smooth_fwhm=0.0,
-				 spectr=False, 
-				 adj_sens=wfc3_grism.options['AXE_ADJ_SENS'],
-				 weights=True,
-				 sampling="drizzle")   
+	# iraf.axecore(inlist='%s_prep.lis' %(wfc3_grism.options['ROOT_GRISM']), 
+	# 			 configs=wfc3_grism.options['FINAL_AXE_CONFIG'],
+	# 			 back=False,
+	# 			 extrfwhm=4.0, 
+	# 			 drzfwhm=3.0, 
+	# 			 backfwhm=4.0,
+	# 			 slitless_geom=wfc3_grism.options['FULL_EXTRACTION_GEOMETRY'], 
+	# 			 orient=wfc3_grism.options['FULL_EXTRACTION_GEOMETRY'], 
+	# 			 exclude=False, 
+	#  			 lambda_mark=wfc3_grism.options['FILTWAVE'], 
+	# 			 cont_model=cont_model, 
+	# 			 model_scale=4.0, 
+	# 			 lambda_psf=wfc3_grism.options['FILTWAVE'],
+	# 			 inter_type="linear", 
+	# 			 np=10, 
+	# 			 interp=0, 
+	# 			 smooth_lengt=0,
+	# 			 smooth_fwhm=0.0,
+	# 			 spectr=False, 
+	# 			 adj_sens=wfc3_grism.options['AXE_ADJ_SENS'],
+	# 			 weights=True,
+	# 			 sampling="drizzle")   
     
-	### start the aXe routine: drzprep
-	wfc3_grism.showMessage('STAGE X: RUNNING AXE.DRZPREP')
+	# ### start the aXe routine: drzprep
+	# wfc3_grism.showMessage('STAGE X: RUNNING AXE.DRZPREP')
 
-	### set drizzle path here to avoid axe.axedrizzle() crashing
-	### becuase of too long file names:
-	os.environ['AXE_DRIZZLE_PATH'] = ('./DRIZZLE_%s' %wfc3_grism.options['GRISM_NAME'])
-	wfc3_grism.options['AXE_DRIZZLE_PATH'] = ('%s/DRIZZLE_%s' %(wfc3_grism.options['ROOT_DIR'], wfc3_grism.options['GRISM_NAME']))
+	# ### set drizzle path here to avoid axe.axedrizzle() crashing
+	# ### becuase of too long file names:
+	# os.environ['AXE_DRIZZLE_PATH'] = ('./DRIZZLE_%s' %wfc3_grism.options['GRISM_NAME'])
+	# wfc3_grism.options['AXE_DRIZZLE_PATH'] = ('%s/DRIZZLE_%s' %(wfc3_grism.options['ROOT_DIR'], wfc3_grism.options['GRISM_NAME']))
 
-	wfc3_grism.utils.iraf_flpr() 
+	# wfc3_grism.utils.iraf_flpr() 
 
-	iraf.drzprep(inlist='%s_prep.lis' %(wfc3_grism.options['ROOT_GRISM']), 
-				 configs=wfc3_grism.options['FINAL_AXE_CONFIG'],
-				 opt_extr=wfc3_grism.options['AXE_OPT_EXTR'], 
-				 back=False)
+	# iraf.drzprep(inlist='%s_prep.lis' %(wfc3_grism.options['ROOT_GRISM']), 
+	# 			 configs=wfc3_grism.options['FINAL_AXE_CONFIG'],
+	# 			 opt_extr=wfc3_grism.options['AXE_OPT_EXTR'], 
+	# 			 back=False)
 
-	### start the aXe routine: axedrizzle
-	wfc3_grism.showMessage('STAGE X: RUNNING AXE.AXEDRIZZLE')
+	# ### start the aXe routine: axedrizzle
+	# wfc3_grism.showMessage('STAGE X: RUNNING AXE.AXEDRIZZLE')
 
-	wfc3_grism.utils.iraf_flpr() 
+	# wfc3_grism.utils.iraf_flpr() 
 
-	iraf.axedrizzle(inlist='%s_prep.lis' %(wfc3_grism.options['ROOT_GRISM']),
-					configs=wfc3_grism.options['FINAL_AXE_CONFIG'],
-					infwhm=4.0,
-					outfwhm=3.0, 
-					back=False,
-					makespc=True,
-					opt_extr=wfc3_grism.options['AXE_OPT_EXTR'],
-					adj_sens=wfc3_grism.options['AXE_ADJ_SENS'], 
-					driz_separate=False)
+	# iraf.axedrizzle(inlist='%s_prep.lis' %(wfc3_grism.options['ROOT_GRISM']),
+	# 				configs=wfc3_grism.options['FINAL_AXE_CONFIG'],
+	# 				infwhm=4.0,
+	# 				outfwhm=3.0, 
+	# 				back=False,
+	# 				makespc=True,
+	# 				opt_extr=wfc3_grism.options['AXE_OPT_EXTR'],
+	# 				adj_sens=wfc3_grism.options['AXE_ADJ_SENS'], 
+	# 				driz_separate=False)
 
-	### make a drizzled contamination image to test accuracy of contamination model:
-	wfc3_grism.showMessage('STAGE XI: MAKING DRIZZLED CONTAMINATION IMAGE')
-	wfc3_grism.multidrizzle.make_drizzled_contamination_image(asn_grism_file)
+	# ### make a drizzled contamination image to test accuracy of contamination model:
+	# wfc3_grism.showMessage('STAGE XI: MAKING DRIZZLED CONTAMINATION IMAGE')
+	# wfc3_grism.multidrizzle.make_drizzled_contamination_image(asn_grism_file)
 
-	### finally make an object table:
-	wfc3_grism.utils.make_object_id_table()
+	# ### finally make an object table:
+	# wfc3_grism.utils.make_object_id_table()
 
-	### change back to root directory 
-	os.chdir(wfc3_grism.options['ROOT_DIR'])
+	# ### change back to root directory 
+	# os.chdir(wfc3_grism.options['ROOT_DIR'])
 
-	### make a file containing all the options:
-	wfc3_grism.showOptions(outfile='./reduction_parameters.txt')
+	# ### make a file containing all the options:
+	# wfc3_grism.showOptions(outfile='./reduction_parameters.txt')
 
-	### finally remove any leftover files:
-	final_cleanup()
+	# ### finally remove any leftover files:
+	# final_cleanup()
 
-	#### get end time
+	# #### get end time
 	end_time = time.time()
 	total_time_minutes = (end_time - start_time) / 60.
 	wfc3_grism.showMessage('FINISHED!! REDUCTION HAS TAKEN %.1f MINUTES' %(total_time_minutes))
@@ -301,6 +304,16 @@ def cleanup_reduction_directories():
 	for dir in directories:
 		if os.path.exists(dir):
 			shutil.rmtree(dir)
+		else:
+			pass
+
+	files = glob.glob('*.lis')
+	files.append('object_id_table.dat')
+	files.append('reduction_parameters.txt')
+
+	for file in files:
+		if os.path.exists(file):
+			os.remove(file)
 		else:
 			pass
 
