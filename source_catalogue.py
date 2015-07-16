@@ -44,6 +44,20 @@ def make_source_catalogue():
 	### then check if using the detection image as the analysis image also:
 	elif wfc3_grism.options['USE_DETECTION_IMAGE_FOR_ANALYSIS'] == True:
 
+		# make sure the wcs info in header is correct:
+		f140w_hdu = fits.open('%s_drz.fits' %(wfc3_grism.options['ROOT_DIRECT']))
+		det_hdu = fits.open('%s_detection_SCI.fits' %(wfc3_grism.options['DETECTION_BAND']), 'update')
+
+		det_hdu[0].header = f140w_hdu[0].header
+		det_hdu[1].header = f140w_hdu[1].header
+
+		# update the image:
+		det_hdu.flush()
+
+		# close the image:
+		f140w_hdu.close()
+		det_hdu.close()
+
 		## get the detection image make in wfc3_grism.direct_images.process_direct_images()
 		sci = '%s_detection_SCI.fits' %(wfc3_grism.options['DETECTION_BAND'])
 		wht = '%s_detection_WHT.fits' %(wfc3_grism.options['DETECTION_BAND'])
