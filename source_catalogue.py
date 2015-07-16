@@ -48,9 +48,8 @@ def make_source_catalogue():
 		f140w_hdu = fits.open('%s_drz.fits' %(wfc3_grism.options['ROOT_DIRECT']))
 		det_hdu = fits.open('%s_detection_SCI.fits' %(wfc3_grism.options['DETECTION_BAND']), 'update')
 
-		det_hdu[0].header = f140w_hdu[0].header
-		det_hdu[1].header = f140w_hdu[1].header
-
+		det_hdu[0].header = f140w_hdu[1].header
+		
 		# update the image:
 		det_hdu.flush()
 
