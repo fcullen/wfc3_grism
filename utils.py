@@ -822,7 +822,7 @@ def delete_multidrizzle_descriptions(fits_file, hdu_ext=0):
 
     # go over an index indicating 
     # an input image for multidrizzle
-    for index in range(100):
+    for index in range(200):
 
         # go over all keyword frames
         for key in keynames:

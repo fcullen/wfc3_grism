@@ -116,8 +116,7 @@ def run_sextractor_setup():
 
 	return se
 
-def add_objects_from_premade_catalogue(extraction_image='',
-									   pre_made_catalogue=''):
+def add_objects_from_premade_catalogue(extraction_image='', pre_made_catalogue=''):
 	"""
 	If using a pre-made catalogue this function makes sure the X-WORLD, Y-WORLD
 	poistions are aligned with the reduction image. Then adds them to the 
@@ -171,10 +170,9 @@ def add_objects_from_premade_catalogue(extraction_image='',
 
 	sex_cat.rowlines += premade_sex_cat.rowlines
 
-	aXe_filter = wfc3_grism.options['PRE_MADE_INPUT_CATALOGUE_FILTER'] 
-	sex_cat.change_MAG_AUTO_for_aXe(filter=aXe_filter)
+	# aXe_filter = wfc3_grism.options['PRE_MADE_INPUT_CATALOGUE_FILTER'] 
+	# sex_cat.change_MAG_AUTO_for_aXe(filter=aXe_filter)
 
 	### finally write out the catalogue:
 	sex_cat.write('%s_drz.cat' %wfc3_grism.options['ROOT_DIRECT'])
-
 	
