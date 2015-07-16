@@ -117,7 +117,7 @@ def reduction_script(asn_grism=None, asn_direct=None):
 	### add the changes to sex file:
 	sex_cat = wfc3_grism.sex.mySexCat('%s_drz.cat' %wfc3_grism.options['ROOT_DIRECT'])
 	
-	if wfc3_grism.options['DETECTION_IMAGE'] is None:
+	if wfc3_grism.options['DETECTION_BAND'] is None:
 		aXe_filter = wfc3_grism.options['DIRECT_FILTER']
 	else:
 		aXe_filter = wfc3_grism.options['DETECTION_BAND']
