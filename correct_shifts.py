@@ -199,10 +199,10 @@ def align_direct_to_reference(verbose=True, n_iter=20, drizzled_image=True):
 	se.overwrite = True
 	se.options['CHECKIMAGE_TYPE'] = 'NONE'
 	se.options['FILTER']    = 'Y'
-	se.options['DETECT_THRESH']    = '50' 
-	se.options['ANALYSIS_THRESH']  = '50' 
+	se.options['DETECT_THRESH']    = '2' 
+	se.options['ANALYSIS_THRESH']  = '2' 
 	se.options['MAG_ZEROPOINT'] = '%.2f' %(wfc3_grism.options['MAG_ZEROPOINT'])
-	se.options['DETECT_MINAREA'] = '100'
+	se.options['DETECT_MINAREA'] = '2'
 
 	### generate the direct image catalog:
 	se.options['CATALOG_NAME']    = 'direct.cat'

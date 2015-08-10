@@ -12,6 +12,8 @@ import pyraf
 from pyraf import iraf
 from iraf import stsdas, dither, slitless, axe
 
+import axe
+
 ### non-native python imports:
 import numpy as np
 from astropy.io import fits
@@ -59,6 +61,14 @@ def reduction_script(asn_grism=None, asn_direct=None):
 
 	#### check that we're in the home directory of a 3D-HST field
 	check_3dhst_environment(makeDirs=True)
+
+	#### make sure axe is loading the correct paths, this is an issue
+	#### if want to run reductions of different datasets one after the
+	#### the other. axe will not change it's glabal variables resulting
+	#### in path issues.
+	#### reload the axeutils module to change GLOBAL_VAR_SET to False
+	reload(axe.axesrc.axeutils)
+	axe.axesrc.axeutils.axe_setup()
 
 	### make sure the raw flt files are in the ./RAW directory
 	check_flt_files_in_raw()
@@ -141,6 +151,8 @@ def reduction_script(asn_grism=None, asn_direct=None):
 	wfc3_grism.showMessage('STAGE VII: RUNNING AXE.AXEPREP')    
 	### cange the root directort:
 	os.chdir(wfc3_grism.options['ROOT_DIR'])
+	print os.getcwd()
+
 	### check first whether using the 3D-HST master skies or not:
 
 	# if wfc3_grism.options['GRISM_NAME'] == 'G141':
@@ -270,7 +282,7 @@ def set_aXe_environment(grating='G141'):
 	os.environ['AXE_IMAGE_PATH'] = wfc3_grism.options['ROOT_DIR'] + '/DATA/'
 	print '--> variable AXE_IMAGE_PATH   set to "./DATA"'
 
-	os.environ['AXE_CONFIG_PATH'] = './CONF/'
+	os.environ['AXE_CONFIG_PATH'] = wfc3_grism.options['ROOT_DIR'] + '/CONF/'
 	print '--> variable AXE_CONFIG_PATH  set to "./CONF/"'
 	 
 	os.environ['AXE_OUTPUT_PATH'] = wfc3_grism.options['ROOT_DIR'] +  '/OUTPUT_' + grating + '/'
