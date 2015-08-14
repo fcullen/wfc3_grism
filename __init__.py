@@ -58,6 +58,12 @@ def defaultOptions():
     ### an image used to align the raw 3dhst data:
     options['ALIGN_IMAGE'] = '/disk1/fc/FIGS/tests/candels_mosaics/gs_all_candels_ers_udf_f160w_v0.5_drz.fits'
 
+    ### parameters used for multidrizzle, pixel scales in arcsec:
+    options['INSTRUMENT_PIXEL_SCALE'] = 0.128254
+    options['ALIGN_IMAGE_PIXEL_SCALE'] = 0.06
+    options['FINAL_DRIZZLE_PIXEL_SCALE'] = 0.06
+    options['PIXFRAC'] = 0.8
+
     ### provide single flt image if not multiple images to drizzle etc.
     options['SINGLE_FLT_DIRECT'] = None
     options['SINGLE_FLT_FILTER'] = 'F125W'
@@ -70,10 +76,6 @@ def defaultOptions():
     options['CONFIG_FILE'] = 'WFC3.IR.G141.V2.0.conf'
     options['SKY_BACKGROUND'] = None
     options['DRZRESOLA'] = '46.5'
-
-    ### parameters to input for final multidrizzle:
-    options['DRZSCALE'] = '0.06'
-    options['PIXFRAC'] = '0.8'
 
     ### location of the 3D-HST master sky backgrounds and wheter to use them.
     ### if options['MASTER_BACKGROUND_SUBTRACTION'] = False use the default aXe

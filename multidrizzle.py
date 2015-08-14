@@ -202,7 +202,7 @@ def make_drizzled_contamination_image(asn_grism_file):
                       driz_cr=False,
                       driz_cr_snr='6 3.0',
                       driz_cr_scale='1.6 0.7',
-                      final_scale = wfc3_grism.options['DRZSCALE'], 
+                      final_scale = wfc3_grism.options['FINAL_DRIZZLE_PIXEL_SCALE'], 
                       final_pixfrac = wfc3_grism.options['PIXFRAC'],
                       driz_combine=True,
                       final_wht_type='IVM',

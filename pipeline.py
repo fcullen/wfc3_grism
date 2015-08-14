@@ -34,9 +34,11 @@ def reduction_script(asn_grism=None, asn_direct=None):
 	    wfc3_grism.showMessage("No ASN grism file supplied",warn=True)
 	    return False
 	if asn_direct is None:
-	    wfc3_grism.showMessage("No ASN driect file supplied: Using single _flt image for aligment", warn=True)
+	    wfc3_grism.showMessage("No ASN driect file supplied: Using single " +
+	                           "_flt image for aligment", warn=True)
 	    if not wfc3_grism.options['SINGLE_FLT_DIRECT']:
-	    	wfc3_grism.showMessage("No direct image for alignment. Shutdown", warn=True)
+	    	wfc3_grism.showMessage("No direct image for alignment." + 
+	    		                   " Shutdown", warn=True)
 	    	return False
 
 	### make holders for the original ASN filenames used for copying
@@ -45,7 +47,8 @@ def reduction_script(asn_grism=None, asn_direct=None):
 		wfc3_grism.options['ASN_DIRECT'] = asn_direct
 	wfc3_grism.options['ASN_GRISM'] = asn_grism
 
-	wfc3_grism.showMessage('STAGE I: PREPARING ENVIRONMENT, DIRECTORS AND FILES FOR REDUCTION')
+	wfc3_grism.showMessage('STAGE I: PREPARING ENVIRONMENT, DIRECTORS ' +
+		                   'AND FILES FOR REDUCTION')
 
 	### make sure we're in the root directory of the reduction:
 	os.chdir(wfc3_grism.options['ROOT_DIR'])
@@ -373,7 +376,7 @@ def set_confguration_parameters():
 
 	### need to scale the 0th order sensitivity curve
 	### if conf.params['SENSITIVITY_B'] == 'wfc3_abscal_IRg141_0th_sens.fits'.
-	### with default the 0th order contamination is being underestimated by the pipeliene
+	### with default the 0th order contamination is being underestimated by the pipeline
 	zeroth_list = ['wfc3_abscal_IRg141_0th_sens.fits', 'WFC3.IR.G141.0th.sens.1.fits']
 
 	if conf.params['SENSITIVITY_B'] in zeroth_list:
@@ -391,7 +394,7 @@ def set_confguration_parameters():
 	##### Parameters for aXe
 	conf.params['DRZROOT'] = wfc3_grism.options['ROOT_GRISM']
 	conf.params['DRZRESOLA'] = wfc3_grism.options['DRZRESOLA']
-	conf.params['DRZSCALE'] = wfc3_grism.options['DRZSCALE']
+	conf.params['DRZSCALE'] = wfc3_grism.options['FINAL_DRIZZLE_PIXEL_SCALE']
 	conf.params['DRZPFRAC'] = wfc3_grism.options['PIXFRAC']
     
 	#### Parameters for BEAM order extraction, all higher orders set to 10
@@ -422,16 +425,15 @@ def set_confguration_parameters():
 
 	## Try expanding the SMFACTOR to account for different pixel scales
 	## in the sensitivity smoothing.  Bug in aXe???
-	if wfc3_grism.options['GRISM_NAME'] == 'G141':
-		conf.params['SMFACTOR'] = '%.3f' %(0.128254/np.float(wfc3_grism.options['DRZSCALE']))
+	if wfc3_grism.options['GRISM_NAME'] == 'G141' or wfc3_grism.options['GRISM_NAME'] == 'G102':
+		conf.params['SMFACTOR'] = '%.3f' %(0.128254/np.float(wfc3_grism.options['FINAL_DRIZZLE_PIXEL_SCALE']))
 
 	conf.params['DQMASK'] = np.str(np.int(conf.params['DQMASK'].split()[0]) | 4096 | 2048)
 
 	#### Workaround to get 0th order contam. in the right place for the fluxcube
 	if wfc3_grism.options['CONFIG_FILE'] == 'WFC3.IR.G141.V1.0.conf':
-		conf.params['BEAMB'] = '-220 220'    
+		conf.params['BEAMB'] = '-220 220'
     
-        
 	conf.writeto('%s_full.conf' %(wfc3_grism.options['ROOT_GRISM']))
 
 	wfc3_grism.options['FINAL_AXE_CONFIG'] = '%s_full.conf' %(wfc3_grism.options['ROOT_GRISM'])

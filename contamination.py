@@ -121,14 +121,19 @@ def register_fluxcube_images(fluxcube_filters):
         
             separation[i] = min(sep)
         
-        print len(separation)
+        
         fig, ax = plt.subplots(figsize=(5,5))
         ax.minorticks_on()
         ax.hist(separation, bins=np.arange(-5.0, 5.0, 0.05), histtype='step', color='k')
         ax.set_xlabel(r'$\mathrm{Separation}$ $/$ $\mathrm{arcsec}$', fontsize=14)
         ax.set_ylabel(r'$\mathrm{N}$', fontsize=14)
+        ax.set_title("Median separation in arcsec = %.2f" % np.median(separation),
+                     fontsize=12)
+        ax.axvline(np.median(separation), color='k', ls=':')
         fig.savefig('./%s_separation.pdf' %(filt[1]))
-            
+
+        print "Number of objects use to derive separation = %d" % len(separation)
+       
         ### these are the files IRAF can't find to remove... stupid IRAF
         tmps = glob.glob('tmps*')
 

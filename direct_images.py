@@ -48,7 +48,7 @@ def process_direct_images(asn_direct_file):
     wfc3_grism.multidrizzle.multidrizzle_run(asn_direct_file, 
                                        shiftfile='%s_initial_shifts.txt' %(wfc3_grism.options['ROOT_DIRECT']), 
                                        pixfrac=1.0, 
-                                       final_scale=0.128254, 
+                                       final_scale=wfc3_grism.options['INSTRUMENT_PIXEL_SCALE'], 
                                        driz_cr=True,
                                        skysub=True,
                                        blot_back=True)
@@ -56,8 +56,8 @@ def process_direct_images(asn_direct_file):
     ### now sample at 1/2 pixel scale for registering to CANDELS images:
     wfc3_grism.multidrizzle.multidrizzle_run(asn_direct_file, 
                                        shiftfile='%s_initial_shifts.txt' %(wfc3_grism.options['ROOT_DIRECT']), 
-                                       pixfrac=0.8, 
-                                       final_scale=0.06, 
+                                       pixfrac=wfc3_grism.options['PIXFRAC'], 
+                                       final_scale=wfc3_grism.options['ALIGN_IMAGE_PIXEL_SCALE'], 
                                        driz_cr=False,
                                        skysub=True,
                                        blot_back=False)
@@ -78,12 +78,12 @@ def process_direct_images(asn_direct_file):
 
     ### first pass cosmic-ray rejection:
     wfc3_grism.multidrizzle.multidrizzle_run(asn_direct_file, 
-                                       shiftfile='%s_final_shifts.txt' %(wfc3_grism.options['ROOT_DIRECT']), 
+                                       shiftfile='%s_initial_shifts.txt' %(wfc3_grism.options['ROOT_DIRECT']), 
                                        pixfrac=1.0, 
-                                       final_scale=0.128254, 
+                                       final_scale=wfc3_grism.options['INSTRUMENT_PIXEL_SCALE'], 
                                        driz_cr=True,
                                        skysub=False,
-                                       updatewcs=True,
+                                       updatewcs=False,
                                        blot_back=True)
 
     ### blot back to original exposures (now with cosmic ray rejection and background subtraction):
@@ -108,11 +108,11 @@ def process_direct_images(asn_direct_file):
     wfc3_grism.showMessage('FINAL MULTIDRIZZLE WITH THE NEW SHIFTS + BACKGROUND SUBTRACTION')
     wfc3_grism.multidrizzle.multidrizzle_run(asn_direct_file, 
                                        shiftfile='%s_final_shifts.txt' %(wfc3_grism.options['ROOT_DIRECT']),
-                                       pixfrac=0.8, 
-                                       final_scale=0.06, 
+                                       pixfrac=wfc3_grism.options['PIXFRAC'], 
+                                       final_scale=wfc3_grism.options['FINAL_DRIZZLE_PIXEL_SCALE'], 
                                        driz_cr=False,
                                        skysub=False,
-                                       updatewcs=False,
+                                       updatewcs=True,
                                        blot_back=False)
 
 

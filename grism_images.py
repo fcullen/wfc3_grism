@@ -26,15 +26,15 @@ def process_grism_images(asn_grism_file):
 
 	### first make a shiftfile for the grism exposures based on the direct shiftfile
 	wfc3_grism.showMessage("MAKING GRISM SHIFTFILE")
-	make_grism_shiftfile(asn_grism_file)
+	make_grism_shiftfile(asn_grism_file, stype='initial')
+	make_grism_shiftfile(asn_grism_file, stype='final')
 
 	#### drizzle them together. first pass use native pixel scale for cosmic ray rejection:
-	#### also just use one of the shift files (x or y not really importrant here)
 	wfc3_grism.showMessage('RUNNING MULTIDRIZZLE ON GRISM IMAGES')
 	wfc3_grism.multidrizzle.multidrizzle_run(asn_grism_file, 
-									   shiftfile='%s_final_shifts.txt' %(wfc3_grism.options['ROOT_GRISM']), 
+									   shiftfile='%s_initial_shifts.txt' %(wfc3_grism.options['ROOT_GRISM']), 
 									   pixfrac=1.0, 
-									   final_scale=0.128254, 
+									   final_scale=wfc3_grism.options['INSTRUMENT_PIXEL_SCALE'], 
 									   driz_cr=True,
 									   skysub=True,
 									   updatewcs=True,
@@ -52,6 +52,18 @@ def process_grism_images(asn_grism_file):
 
 	#### copy over fresh flt files to do final sky subtraction:
 	wfc3_grism.utils.copy_over_fresh_flt_files(wfc3_grism.options['ASN_GRISM'], from_path='../RAW')
+
+	#### clean once more for cosmic rays and then drizzle to final resolution, skip background subtraction
+	#### apply the xshifts:
+	wfc3_grism.showMessage('RE-RUNNING MULTIDRIZZLE WITH BACKGROUND SUBTRACTED GRISM EXPOSURES')
+	wfc3_grism.multidrizzle.multidrizzle_run(asn_grism_file, 
+									   shiftfile='%s_initial_shifts.txt' %(wfc3_grism.options['ROOT_GRISM']), 
+									   pixfrac=1.0, 
+									   final_scale=wfc3_grism.options['INSTRUMENT_PIXEL_SCALE'], 
+									   driz_cr=True,
+									   skysub=False,
+									   updatewcs=False,
+									   blot_back=True)
 
 	wfc3_grism.showMessage('DOING FULL GRISM SKY SUBTRACTION')
 
@@ -80,30 +92,18 @@ def process_grism_images(asn_grism_file):
 	else:
 		skysub = True
 
-	#### clean once more for cosmic rays and then drizzle to final resolution, skip background subtraction
-	#### apply the xshifts:
-	wfc3_grism.showMessage('RE-RUNNING MULTIDRIZZLE WITH BACKGROUND SUBTRACTED GRISM EXPOSURES')
-	wfc3_grism.multidrizzle.multidrizzle_run(asn_grism_file, 
-									   shiftfile='%s_final_shifts.txt' %(wfc3_grism.options['ROOT_GRISM']), 
-									   pixfrac=1.0, 
-									   final_scale=0.128254, 
-									   driz_cr=True,
-									   skysub=False,
-									   updatewcs=True,
-									   blot_back=True)
-
 	#### finally drizzle to the desired resolution
 	#### apply the y-shifts:
 	wfc3_grism.multidrizzle.multidrizzle_run(asn_grism_file, 
 									   shiftfile='%s_final_shifts.txt' %(wfc3_grism.options['ROOT_GRISM']), 
-									   pixfrac=0.8, 
-									   final_scale=0.06, 
+									   pixfrac=wfc3_grism.options['PIXFRAC'], 
+									   final_scale=wfc3_grism.options['FINAL_DRIZZLE_PIXEL_SCALE'], 
 									   driz_cr=False,
 									   skysub=skysub,
-									   updatewcs=False,
+									   updatewcs=True,
 									   blot_back=False)
 
-def make_grism_shiftfile(asn_grism_file):
+def make_grism_shiftfile(asn_grism_file, stype='final'):
 	"""
 	make_grism_shiftfile(asn_direct, grism_direct)
 
@@ -115,7 +115,7 @@ def make_grism_shiftfile(asn_grism_file):
 	"""
 
 	#### Read shiftfile and ASN table
-	sf = wfc3_grism.correct_shifts.ShiftFile('%s_final_shifts.txt' %(wfc3_grism.options['ROOT_DIRECT']))
+	sf = wfc3_grism.correct_shifts.ShiftFile('%s_%s_shifts.txt' %(wfc3_grism.options['ROOT_DIRECT'], stype))
 	asn = wfc3_grism.utils.ASNFile(asn_grism_file)
     
 	if sf.nrows == len(asn.exposures):
@@ -145,7 +145,7 @@ def make_grism_shiftfile(asn_grism_file):
 		sf.nrows = len(asn.exposures)
         
 	#### Write the new shiftfile
-	sf.write('%s_final_shifts.txt' %(wfc3_grism.options['ROOT_GRISM']))
+	sf.write('%s_%s_shifts.txt' %(wfc3_grism.options['ROOT_GRISM'], stype))
 
 def make_grism_exposure_segmaps(asn_grism_file, sigma=0.5):
 	"""

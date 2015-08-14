@@ -199,10 +199,10 @@ def align_direct_to_reference(verbose=True, n_iter=20, drizzled_image=True):
 	se.overwrite = True
 	se.options['CHECKIMAGE_TYPE'] = 'NONE'
 	se.options['FILTER']    = 'Y'
-	se.options['DETECT_THRESH']    = '2' 
-	se.options['ANALYSIS_THRESH']  = '2' 
+	se.options['DETECT_THRESH']    = '3' 
+	se.options['ANALYSIS_THRESH']  = '3' 
 	se.options['MAG_ZEROPOINT'] = '%.2f' %(wfc3_grism.options['MAG_ZEROPOINT'])
-	se.options['DETECT_MINAREA'] = '2'
+	se.options['DETECT_MINAREA'] = '3'
 
 	### generate the direct image catalog:
 	se.options['CATALOG_NAME']    = 'direct.cat'
@@ -247,7 +247,7 @@ def align_direct_to_reference(verbose=True, n_iter=20, drizzled_image=True):
 	xrms, yrms = 100, 100
 	toler = 2
 	iteration = 0
-	max_iter = 5
+	max_iter = 3
 	while ((xrms > 0.1) | (yrms > 0.1)) & (iteration <= max_iter):
 
 		print "Running matching algorithm on iteration #%d" %(iteration)
