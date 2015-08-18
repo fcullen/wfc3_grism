@@ -199,10 +199,10 @@ def align_direct_to_reference(verbose=True, n_iter=20, drizzled_image=True):
 	se.overwrite = True
 	se.options['CHECKIMAGE_TYPE'] = 'NONE'
 	se.options['FILTER']    = 'Y'
-	se.options['DETECT_THRESH']    = '3' 
+	se.options['DETECT_THRESH']    = '%.1f' % wfc3_grism.options['ALIGN_DETECT_THRESH'] 
 	se.options['ANALYSIS_THRESH']  = '3' 
-	se.options['MAG_ZEROPOINT'] = '%.2f' %(wfc3_grism.options['MAG_ZEROPOINT'])
-	se.options['DETECT_MINAREA'] = '3'
+	se.options['MAG_ZEROPOINT'] = '%.2f' % wfc3_grism.options['MAG_ZEROPOINT']
+	se.options['DETECT_MINAREA'] = '%.1f' % wfc3_grism.options['ALIGN_DETECT_MINAREA'] 
 
 	### generate the direct image catalog:
 	se.options['CATALOG_NAME']    = 'direct.cat'
@@ -245,9 +245,9 @@ def align_direct_to_reference(verbose=True, n_iter=20, drizzled_image=True):
 	### now loop through the process until xrms and yrms both < 0.5
 	### or run out of number of iterations:
 	xrms, yrms = 100, 100
-	toler = 2
+	toler = wfc3_grism.options['ALIGN_TOLERANCE']
 	iteration = 0
-	max_iter = 3
+	max_iter = wfc3_grism.options['ALIGN_ITERATIONS']
 	while ((xrms > 0.1) | (yrms > 0.1)) & (iteration <= max_iter):
 
 		print "Running matching algorithm on iteration #%d" %(iteration)

@@ -55,8 +55,13 @@ def defaultOptions():
     options['DIRECT_FILTER'] = 'F140W'
     options['MAG_ZEROPOINT'] = 26.46
 
-    ### an image used to align the raw 3dhst data:
+    ### an image used to align the raw 3dhst data and parameters used in the
+    ### wfc3_grism.correct_shifts.align_direct_to_reference() routine.
     options['ALIGN_IMAGE'] = '/disk1/fc/FIGS/tests/candels_mosaics/gs_all_candels_ers_udf_f160w_v0.5_drz.fits'
+    options['ALIGN_TOLERANCE'] = 2
+    options['ALIGN_ITERATIONS'] = 3
+    options['ALIGN_DETECT_THRESH'] = 2.0
+    options['ALIGN_DETECT_MINAREA'] = 2.0
 
     ### parameters used for multidrizzle, pixel scales in arcsec:
     options['INSTRUMENT_PIXEL_SCALE'] = 0.128254
