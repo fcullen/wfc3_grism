@@ -62,29 +62,30 @@ def process_direct_images(asn_direct_file):
                                        skysub=True,
                                        blot_back=False)
 
-    shutil.copy('%s_drz.fits' %(wfc3_grism.options['ROOT_DIRECT']), 'INITIAL_SHIFTED_DRZ.fits')
+    if wfc3_grism.options['ALIGN_IMAGE']:
+        shutil.copy('%s_drz.fits' %(wfc3_grism.options['ROOT_DIRECT']), 'INITIAL_SHIFTED_DRZ.fits')
 
-    ### cut out a region of the CANDEL image to use to align the grism exposures:
-    wfc3_grism.showMessage('CUTTING OUT CANDELS REGION TO ALIGN')
-    wfc3_grism.correct_shifts.run_sregister_for_align_image(mosiac_drz=wfc3_grism.options['ALIGN_IMAGE'])
+        ### cut out a region of the CANDEL image to use to align the grism exposures:
+        wfc3_grism.showMessage('CUTTING OUT CANDELS REGION TO ALIGN')
+        wfc3_grism.correct_shifts.run_sregister_for_align_image(mosiac_drz=wfc3_grism.options['ALIGN_IMAGE'])
 
-    ### align dirzzled image to reference CANDELS mosaic:
-    wfc3_grism.showMessage('ALIGNING DIRECT IMAGE TO CANDELS')
-    wfc3_grism.correct_shifts.align_direct_to_reference(verbose=True)
+        ### align dirzzled image to reference CANDELS mosaic:
+        wfc3_grism.showMessage('ALIGNING DIRECT IMAGE TO CANDELS')
+        wfc3_grism.correct_shifts.align_direct_to_reference(verbose=True)
 
-    ### copy over the new .flt files into the DATA directory to apply new shfits:
-    wfc3_grism.showMessage('RE-RUNNING MULTIDRIZZLE WITH THE NEW SHIFTS FOR COSMIC RAY REJECTION')
-    wfc3_grism.utils.copy_over_fresh_flt_files(asn_filename=wfc3_grism.options['ASN_DIRECT'], from_path='../RAW')
+        ### copy over the new .flt files into the DATA directory to apply new shfits:
+        wfc3_grism.showMessage('RE-RUNNING MULTIDRIZZLE WITH THE NEW SHIFTS FOR COSMIC RAY REJECTION')
+        wfc3_grism.utils.copy_over_fresh_flt_files(asn_filename=wfc3_grism.options['ASN_DIRECT'], from_path='../RAW')
 
-    ### first pass cosmic-ray rejection:
-    wfc3_grism.multidrizzle.multidrizzle_run(asn_direct_file, 
-                                       shiftfile='%s_initial_shifts.txt' %(wfc3_grism.options['ROOT_DIRECT']), 
-                                       pixfrac=1.0, 
-                                       final_scale=wfc3_grism.options['INSTRUMENT_PIXEL_SCALE'], 
-                                       driz_cr=True,
-                                       skysub=False,
-                                       updatewcs=False,
-                                       blot_back=True)
+        ### first pass cosmic-ray rejection:
+        wfc3_grism.multidrizzle.multidrizzle_run(asn_direct_file, 
+                                           shiftfile='%s_initial_shifts.txt' %(wfc3_grism.options['ROOT_DIRECT']), 
+                                           pixfrac=1.0, 
+                                           final_scale=wfc3_grism.options['INSTRUMENT_PIXEL_SCALE'], 
+                                           driz_cr=True,
+                                           skysub=False,
+                                           updatewcs=False,
+                                           blot_back=True)
 
     ### blot back to original exposures (now with cosmic ray rejection and background subtraction):
     wfc3_grism.showMessage('RUNNING BLOT ON DRIZZLED DIRECT IMAGE')
@@ -104,10 +105,17 @@ def process_direct_images(asn_direct_file):
                                      segmap='%s.seg.fits' %(direct_exposure),
                                      show=True)
 
+    ### choose the shiftfile based on whether the image has been aligned to
+    ### a reference mosaic or not:
+    if wfc3_grism.options['ALIGN_IMAGE']:
+        final_shiftfile = '%s_final_shifts.txt' %(wfc3_grism.options['ROOT_DIRECT'])
+    else:
+        final_shiftfile = '%s_initial_shifts.txt' %(wfc3_grism.options['ROOT_DIRECT'])
+
     ### final drizzle to 1/2 pixel resolution with the background subtraction:
     wfc3_grism.showMessage('FINAL MULTIDRIZZLE WITH THE NEW SHIFTS + BACKGROUND SUBTRACTION')
     wfc3_grism.multidrizzle.multidrizzle_run(asn_direct_file, 
-                                       shiftfile='%s_final_shifts.txt' %(wfc3_grism.options['ROOT_DIRECT']),
+                                       shiftfile=final_shiftfile,
                                        pixfrac=wfc3_grism.options['PIXFRAC'], 
                                        final_scale=wfc3_grism.options['FINAL_DRIZZLE_PIXEL_SCALE'], 
                                        driz_cr=False,

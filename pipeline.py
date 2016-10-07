@@ -63,7 +63,7 @@ def reduction_script(asn_grism=None, asn_direct=None):
 	set_aXe_environment(grating=wfc3_grism.options['GRISM_NAME'])
 
 	#### check that we're in the home directory of a 3D-HST field
-	check_3dhst_environment(makeDirs=True)
+	check_aXe_environment(makeDirs=True)
 
 	#### make sure axe is loading the correct paths, this is an issue
 	#### if want to run reductions of different datasets one after the
@@ -184,8 +184,10 @@ def reduction_script(asn_grism=None, asn_direct=None):
 		wfc3_grism.contamination.setup_fluxcube()
 		os.chdir(wfc3_grism.options['ROOT_DIR'])
 		cont_model="fluxcube"
+		opt_weights=True
 	else:
-		cont_model="gauss"
+		cont_model="geometric"
+		opt_weights=False
 
 	### start the aXe routine: axecore:
 	wfc3_grism.showMessage('STAGE IX: RUNNING AXE.AXECORE')
@@ -212,7 +214,7 @@ def reduction_script(asn_grism=None, asn_direct=None):
 				 smooth_fwhm=0.0,
 				 spectr=False, 
 				 adj_sens=wfc3_grism.options['AXE_ADJ_SENS'],
-				 weights=True,
+				 weights=opt_weights,
 				 sampling="drizzle")   
     
 	### start the aXe routine: drzprep
@@ -246,8 +248,9 @@ def reduction_script(asn_grism=None, asn_direct=None):
 					driz_separate=False)
 
 	### make a drizzled contamination image to test accuracy of contamination model:
-	wfc3_grism.showMessage('STAGE XI: MAKING DRIZZLED CONTAMINATION IMAGE')
-	wfc3_grism.multidrizzle.make_drizzled_contamination_image(asn_grism_file)
+	if  wfc3_grism.options['APPLY_FLUXCUBE_MODEL']:
+		wfc3_grism.showMessage('STAGE XI: MAKING DRIZZLED CONTAMINATION IMAGE')
+		wfc3_grism.multidrizzle.make_drizzled_contamination_image(asn_grism_file)
 
 	### finally make an object table:
 	wfc3_grism.utils.make_object_id_table()
@@ -294,12 +297,12 @@ def set_aXe_environment(grating='G141'):
 	os.environ['AXE_DRIZZLE_PATH'] = wfc3_grism.options['ROOT_DIR'] + '/DRIZZLE_' + grating + '/'
 	print '--> variable AXE_DRIZZLE_PATH set to' + '"./DRIZZLE_' + grating + '/"'
 
-def check_3dhst_environment(makeDirs=True):
+def check_aXe_environment(makeDirs=True):
 	"""
-	check_3dhst_environment(makeDirs=False)
+	check_aXe_environment(makeDirs=False)
 	    
 	Check that all of the expected directories exist for 
-	3D-HST data reduction.
+	check_aXe_environment data reduction.
 	    
 	If makeDirs is True, then mkdir any that isn't found in ./
 	"""  

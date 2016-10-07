@@ -125,7 +125,7 @@ def run_sextractor_setup():
 	if wfc3_grism.options['DETECTION_IMAGE'] and wfc3_grism.options['USE_DETECTION_IMAGE_FOR_ANALYSIS']:
 		se.options['MAG_ZEROPOINT'] = str(wfc3_grism.options['DETECTION_MAG_ZEROPOINT'])
 	else:
-		se.options['MAG_ZEROPOINT'] = str(wfc3_grism.options['DIRECT_MAG_ZEROPOINT'])
+		se.options['MAG_ZEROPOINT'] = str(wfc3_grism.options['MAG_ZEROPOINT'])
 
 	return se
 

@@ -26,8 +26,14 @@ def process_grism_images(asn_grism_file):
 
 	### first make a shiftfile for the grism exposures based on the direct shiftfile
 	wfc3_grism.showMessage("MAKING GRISM SHIFTFILE")
-	make_grism_shiftfile(asn_grism_file, stype='initial')
-	make_grism_shiftfile(asn_grism_file, stype='final')
+
+	### make the shiftfile, changes depending on whether or not have used
+	### a mosaic to align the image to.
+	if wfc3_grism.options['ALIGN_IMAGE']:
+		make_grism_shiftfile(asn_grism_file, stype='final')
+	else:
+		make_grism_shiftfile(asn_grism_file, stype='initial')
+	
 
 	#### drizzle them together. first pass use native pixel scale for cosmic ray rejection:
 	wfc3_grism.showMessage('RUNNING MULTIDRIZZLE ON GRISM IMAGES')
@@ -92,10 +98,17 @@ def process_grism_images(asn_grism_file):
 	else:
 		skysub = True
 
+	### choose the shiftfile based on whether the image has been aligned to
+    ### a reference mosaic or not:
+	if wfc3_grism.options['ALIGN_IMAGE']:
+		final_shiftfile = '%s_final_shifts.txt' %(wfc3_grism.options['ROOT_GRISM'])
+	else:
+		final_shiftfile = '%s_initial_shifts.txt' %(wfc3_grism.options['ROOT_GRISM'])
+
 	#### finally drizzle to the desired resolution
 	#### apply the y-shifts:
 	wfc3_grism.multidrizzle.multidrizzle_run(asn_grism_file, 
-									   shiftfile='%s_final_shifts.txt' %(wfc3_grism.options['ROOT_GRISM']), 
+									   shiftfile=final_shiftfile, 
 									   pixfrac=wfc3_grism.options['PIXFRAC'], 
 									   final_scale=wfc3_grism.options['FINAL_DRIZZLE_PIXEL_SCALE'], 
 									   driz_cr=False,
